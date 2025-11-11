@@ -1,13 +1,8 @@
 #ifndef SCREEN_TAP_H   // 判断是否已经定义过 MACHINE_VISION_H
 #define SCREEN_TAP_H   // 如果没有定义过，则定义它
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "pulic_def.h"
 
-typedef struct {
-    int x;
-    int y;
-} ad_point;
 
 int INPUT_TAP(int x, int y);
 int INPUT_SWIPE(ad_point start, ad_point end, int duration);

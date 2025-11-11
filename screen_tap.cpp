@@ -72,14 +72,16 @@ int DEBUG_TAP_OPERATIONS() {
     // 1. 按下 Home 键
     printf("DEBUG: Pressing Home button...\n");
     INPUT_HOME();
-
+    sleep(1);
     // 2. 打开文件管理器
     printf("DEBUG: Opening File Manager...\n");
     OPEN_FILE_MANAGER();
+    sleep(1);
 
     // 3. 返回
     printf("DEBUG: Going Back...\n");
     INPUT_BACK();
+    sleep(1);
 
     // 4. 打开控制面板
     printf("DEBUG: Opening Control Panel...\n");
@@ -88,14 +90,17 @@ int DEBUG_TAP_OPERATIONS() {
     // 5. 返回
     printf("DEBUG: Going Back...\n");
     INPUT_BACK();
+    sleep(1);
 
     // 6. 左滑
     printf("DEBUG: Swiping Left...\n");
     SWIPE_LEFT_TO_RIGHT();
+    sleep(1);
 
     // 7. 右滑
     printf("DEBUG: Swiping Right...\n");
     SWIPE_RIGHT_TO_LEFT();
+    sleep(1);
 
     // 结束调试
     printf("DEBUG completed\n");

@@ -40,5 +40,7 @@ link_libraries(
         z
         )
 add_executable(cv_exe ./main.cpp app_tiktok.cpp machine_vision.cpp screen_tap.cpp
-    app_tiktok.h machine_vision.h pulic_def.h screen_tap.h)
+    app_tiktok.h machine_vision.h pulic_def.h screen_tap.h
+    opencv_utils.h
+    opencv_utils.cpp)
                                                          
