@@ -6,21 +6,22 @@
 using namespace std;
 
 typedef enum {
-    APP_TIKTOK = 1,          // TikTok
-    APP_WECHAT = 2,          // WeChat
-    APP_REDBOOK = 3,         // RedBook
-    APP_MEITUAN = 4,         // Meituan
-    APP_DAZHONGDIANPING = 5, // 大众点评
-    APP_BAIDU = 6,           // Baidu
-    APP_ALIPAY = 7,          // Alipay
-    APP_QQ = 8,              // QQ
-    APP_KUAISHOU = 9,        // 快手
-    APP_BILIBILI = 10        // 哔哩哔哩
+    APP_TIKTOK_ENUM = 1,          // TikTok
+    APP_WECHAT_ENUM = 2,          // WeChat
+    APP_REDBOOK_ENUM = 3,         // RedBook
+    APP_MEITUAN_ENUM = 4,         // Meituan
+    APP_DAZHONGDIANPING_ENUM = 5, // 大众点评
+    APP_BAIDU_ENUM = 6,           // Baidu
+    APP_ALIPAY_ENUM = 7,          // Alipay
+    APP_QQ_ENUM = 8,              // QQ
+    APP_KUAISHOU_ENUM = 9,        // 快手
+    APP_BILIBILI_ENUM = 10        // 哔哩哔哩
 } AppType;
 typedef struct {
     int x;
     int y;
 } ad_point;
 #define SHORT_DELAY usleep(1000*200);
-
+#define APPUI_XY 51
+#define APK_TIKTOK_NAME "com.ss.android.ugc.aweme"
 #endif

@@ -1,5 +1,22 @@
 #include "opencv_utils.h"
 
+void test_opencv()
+{
+    snap_screen();//重新生成一张背景图片
+
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread("/data/machine_vision/tiktok.png"); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+
+    if (match.x != -1 && match.y != -1) {
+        std::cout << "模板匹配成功，左上角坐标: (" << match.x << ", " << match.y << "), 得分: " << score << std::endl;
+    } else {
+        std::cout << "未找到有效匹配。" << std::endl;
+    }
+
+}
+
 
 void snap_screen()//重新生成背景图片
 {
@@ -40,6 +57,20 @@ ad_point FindPicTarget(cv::Mat targetImage, cv::Mat templateImage, double &Score
 
     // 返回匹配位置的左上角坐标
     ad_point matchPoint = {maxLoc.x, maxLoc.y};
+
+// 调试部分：标记匹配区域并保存图像
+#if 1
+    // 在目标图像中用红色框标记匹配区域
+    cv::Rect matchRect(maxLoc.x, maxLoc.y, templateImage.cols, templateImage.rows);
+    cv::Mat debugImage = targetImage.clone();  // 创建目标图像的副本
+
+    // 用红色框住匹配区域
+    cv::rectangle(debugImage, matchRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+    // 保存调试图像到本地
+    cv::imwrite("debug_image_with_red_box.jpg", debugImage);
+#endif
+
     return matchPoint;
 }
 

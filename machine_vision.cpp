@@ -6,52 +6,52 @@ void turnon_application(AppType apptype)
 {
     switch (apptype)
     {
-    case APP_TIKTOK:
+    case APP_TIKTOK_ENUM:
         std::cout << "DEBUG: Turning on TikTok..." << std::endl;
         TURN_ON_TIKTOK();
         break;
 
-    case APP_WECHAT:
+    case APP_WECHAT_ENUM:
         std::cout << "DEBUG: Turning on WeChat..." << std::endl;
         TURN_ON_WECHAT();
         break;
 
-    case APP_REDBOOK:
+    case APP_REDBOOK_ENUM:
         std::cout << "DEBUG: Turning on RedBook..." << std::endl;
         TURN_ON_REDBOOK();
         break;
 
-    case APP_MEITUAN:
+    case APP_MEITUAN_ENUM:
         std::cout << "DEBUG: Turning on Meituan..." << std::endl;
         TURN_ON_MEITUAN();
         break;
 
-    case APP_DAZHONGDIANPING:
+    case APP_DAZHONGDIANPING_ENUM:
         std::cout << "DEBUG: Turning on Da Zhong Dian Ping..." << std::endl;
         TURN_ON_DAZHONGDIANPING();
         break;
 
-    case APP_BAIDU:
+    case APP_BAIDU_ENUM:
         std::cout << "DEBUG: Turning on Baidu..." << std::endl;
         TURN_ON_BAIDU();
         break;
 
-    case APP_ALIPAY:
+    case APP_ALIPAY_ENUM:
         std::cout << "DEBUG: Turning on Alipay..." << std::endl;
         TURN_ON_ALIPAY();
         break;
 
-    case APP_QQ:
+    case APP_QQ_ENUM:
         std::cout << "DEBUG: Turning on QQ..." << std::endl;
         TURN_ON_QQ();
         break;
 
-    case APP_KUAISHOU:
+    case APP_KUAISHOU_ENUM:
         std::cout << "DEBUG: Turning on Kuaishou..." << std::endl;
         TURN_ON_KUAISHOU();
         break;
 
-    case APP_BILIBILI:
+    case APP_BILIBILI_ENUM:
         std::cout << "DEBUG: Turning on Bilibili..." << std::endl;
         TURN_ON_BILIBILI();
         break;
@@ -71,8 +71,18 @@ void TURN_ON_TIKTOK(void)
     std::cout << "Launching TikTok..." << std::endl;
     INPUT_HOME();
     SHORT_DELAY;
+    OPEN_FILE_MANAGER() ;
+    SHORT_DELAY;
 
+    snap_screen();//重新生成一张背景图片
 
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread("/data/machine_vision/apppic/tiktok.png"); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+    match.x += APPUI_XY/2;
+    match.y += APPUI_XY/2;
+    INPUT_TAP(match);
 }
 
 // 启动 WeChat

@@ -4,7 +4,7 @@
 #include "pulic_def.h"
 
 
-int INPUT_TAP(int x, int y);
+int INPUT_TAP(ad_point);
 int INPUT_SWIPE(ad_point start, ad_point end, int duration);
 int INPUT_HOME();
 int INPUT_BACK();

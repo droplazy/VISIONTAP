@@ -1,26 +1,21 @@
-#include <stdio.h>
-
-#include "pulic_def.h"
+//#include "pulic_def.h"
 #include <unistd.h>
-#include "screen_tap.h"
 #include "app_tiktok.h"
-#include "machine_vision.h"
-
+//#include "machine_vision.h"
 
 int main()
 {
-    // APP_TIKTOK app;
+     class APP_TIKTOK app;
 
-    // app.start();  // 启动线程
+    sleep(1);
+    app.start();
 
-    // std::this_thread::sleep_for(std::chrono::seconds(5));  // 主线程等待5秒
+    //std::cout << std::boolalpha;
+    // while (1) {
+    //      std::cout <<app.checkAPKRunning(APK_TIKTOK_NAME)<< std::endl;;
+    //     sleep(1);
+    // }
 
-    // app.stop();  // 停止线程
-    DEBUG_TAP_OPERATIONS();
-    INPUT_HOME();
-    sleep(3);
-    //AppType app =1;
-    turnon_application(APP_TIKTOK);
     return 0;
 }
 
