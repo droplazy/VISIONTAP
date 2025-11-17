@@ -21,7 +21,8 @@ typedef struct {
     int x;
     int y;
 } ad_point;
-#define SHORT_DELAY usleep(1000*200);
+#define SHORT_DELAY usleep(1000*1000);
+#define LONG_DELAY usleep(3000*1000);
 #define APPUI_XY 51
 #define APK_TIKTOK_NAME "com.ss.android.ugc.aweme"
 #endif

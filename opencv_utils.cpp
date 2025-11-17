@@ -23,6 +23,8 @@ void snap_screen()//重新生成背景图片
     system("rm /data/machine_vision/background.png");
     usleep(10*1000);
     system("screencap -p /data/machine_vision/background.png");
+    //usleep(1500*1000);
+
 }
 
 ad_point FindPicTarget(cv::Mat targetImage, cv::Mat templateImage, double &Score)
@@ -49,15 +51,6 @@ ad_point FindPicTarget(cv::Mat targetImage, cv::Mat templateImage, double &Score
 
     // 返回匹配得分
     Score = maxVal;
-
-    // 如果得分太低，返回一个无效的坐标
-    if (Score < 0.8) {
-        return ad_point{-1, -1};
-    }
-
-    // 返回匹配位置的左上角坐标
-    ad_point matchPoint = {maxLoc.x, maxLoc.y};
-
 // 调试部分：标记匹配区域并保存图像
 #if 1
     // 在目标图像中用红色框标记匹配区域
@@ -70,6 +63,15 @@ ad_point FindPicTarget(cv::Mat targetImage, cv::Mat templateImage, double &Score
     // 保存调试图像到本地
     cv::imwrite("debug_image_with_red_box.jpg", debugImage);
 #endif
+    // 如果得分太低，返回一个无效的坐标
+    if (Score < 0.8) {
+        return ad_point{-1, -1};
+    }
+
+    // 返回匹配位置的左上角坐标
+    ad_point matchPoint = {maxLoc.x, maxLoc.y};
+
+
 
     return matchPoint;
 }
