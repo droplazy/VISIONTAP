@@ -93,10 +93,46 @@ void APP_TIKTOK::ContentExtraction()
     }
 }
 
-void APP_TIKTOK::SearchPersonZone()
+int APP_TIKTOK::SearchPersonZone(string Name)
 {
-    INPUT_TYPEINGTEXT("神田川");
+    if(CopyTextFormSys(Name) <0 )
+    {
+        cout << "error : 无法复制文本!\n";
+        return -1;
+    }
 
+    turnon_application(APP_TIKTOK_ENUM);
+
+    LONG_DELAY;
+    ad_point clickP = TIKTOK_OPT_SEARCH;
+    INPUT_TAP(clickP);
+    LONG_DELAY;
+
+
+    clickP = TIKTOK_OPT_TEXT_INPUT;
+    INPUT_TAP_DELAY(clickP,1000);
+    SHORT_DELAY;
+
+    //粘贴
+    int ret = FindTargetClick(TEXTPASTE_PATH, false);
+    if(ret < 0)
+    {
+        cout << "warning :" << TEXTPASTE_PATH << "   NOT FOUND !" << endl;
+        return -1;
+    }
+    LONG_DELAY;
+
+    clickP = TIKTOK_OPT_CONTINUE_SEARCH;
+    INPUT_TAP_DELAY(clickP,1000);
+
+    LONG_DELAY;
+    LONG_DELAY;
+    LONG_DELAY;
+    LONG_DELAY;
+    LONG_DELAY;
+    LONG_DELAY;
+
+    return 0;
 }
 
 int APP_TIKTOK::SendComment(string comments)
@@ -163,7 +199,7 @@ void APP_TIKTOK::run() {
        // std::cout << "RUNNING" << std::endl;  // 每秒打印一次 RUNNING
         ContentExtraction();
         this_thread::sleep_for(chrono::seconds(1));  // 等待一秒
-        SendComment("WO SHIZHANG JIAHAO ");
-
+       // SendComment("神田川");
+        SearchPersonZone("神田川");
     }
 }

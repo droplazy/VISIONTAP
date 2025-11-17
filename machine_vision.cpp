@@ -153,7 +153,7 @@ void INPUT_TYPEINGTEXT(string text)
     // 检查文件是否成功打开
     if (outFile.is_open()) {
         // 格式化写入
-        outFile << "Text: " << text << std::endl;
+        outFile <<text << std::endl;// "Text: " <<
         outFile.close(); // 关闭文件
     } else {
         std::cerr << "无法打开文件进行写入" << std::endl;
@@ -286,6 +286,7 @@ int CopyTextFormSys(string texture)
         return -1;
     }
     LONG_DELAY;
+#if 0
     //点击文本内容
     ret = FindTargetClick(TEXTCONTENT_PATH, true);
     if(ret < 0)
@@ -293,6 +294,17 @@ int CopyTextFormSys(string texture)
         cout << "warning :" << TEXTCONTENT_PATH << "   NOT FOUND !" << endl;
         return -1;
     }
+#else
+    LONG_DELAY;
+
+    ad_point clickP = TEXTURE_CLICK;
+    INPUT_TAP_DELAY(clickP,1000);
+    LONG_DELAY;
+#endif
+
+
+
+
     // LONG_DELAY;
     //点击全选
     ret = FindTargetClick(ALLSELECT_PATH, false);

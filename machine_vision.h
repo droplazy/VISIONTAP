@@ -9,6 +9,8 @@
 #define FILE_SYSTEM_TEXT (120,357)
 
 
+#define TEXTURE_CLICK {31, 107}
+
 // 宏定义文件路径
 #define FILESYSTEM_PATH            "/data/machine_vision/apppic/filesystem.png"
 #define PIPETXT_PATH               "/data/machine_vision/apppic/pipetxt.png"

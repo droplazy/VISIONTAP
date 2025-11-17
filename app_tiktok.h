@@ -72,8 +72,11 @@ public:
     void start();// 启动线程
     void stop();// 停止线程
     void ContentExtraction();
-    void SearchPersonZone();
+
+    int SearchPersonZone(string Name);
     int SendComment(string comments);
+    int SendMessageToPerson(string comments);
+
 private:
     // 线程执行的内容
     void run();
