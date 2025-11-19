@@ -9,6 +9,9 @@
 #include <cstdio>
 
 
+
+
+
 #define TIKTOK_OPT_COMMENTS {1000, 249}    // 评论
 #define TIKTOK_OPT_CLOSE_COMMENTS {1000, 197}  // 关闭评论
 #define TIKTOK_OPT_LIKES {994, 199}       // 点赞
@@ -39,18 +42,39 @@
 #define TIKTOK_OPT_SEND_MESSAGE {583, 508}     // 发私信
 #define TIKTOK_OPT_CLICK_DIALOG_1 {403, 508}   // 点击对话框1
 #define TIKTOK_OPT_CLICK_DIALOG_2 {227, 159}   // 点击对话框2
-#define TIKTOK_OPT_SEND_MSG {982, 157}         // 发送
-#define TIKTOK_OPT_ENTER_LIVE {515, 233}       // 进入直播间
+#define TIKTOK_OPT_SEND_MSG {982, 157}         // 发送私信
+#define TIKTOK_OPT_ENTER_LIVE {515, 233}       // 进入直播间推荐业
 #define TIKTOK_OPT_SEND_DANMU {417, 502}       // 弹幕
 #define TIKTOK_OPT_SEND2 {971, 105}            // 发送
+\
+#define TIKTOK_OPT_USER_BUTTON {165, 95}       // 用户按钮
+#define TIKTOK_OPT_FOLLOW_BUTTON {740, 170}     // 关注按钮
+#define TIKTOK_OPT_ZONE_BUTTON {440, 170}     // 进入空间
+#define TIKTOK_OPT_LIVING_BUTTON {300, 170}     // 进入直播间 假如在直播的花
+#define TIKTOK_OPT_BARRAGE_BUTTON {65, 502}     // 弹幕钮
+#define TIKTOK_OPT_HEART {872, 504}             // 小心心
 
 
 
 #define TIKTOK_COMMENTS_CV        "/data/machine_vision/apppic/comments.png"
 #define TIKTOK_PRESSSEND_CV       "/data/machine_vision/apppic/pressSend.png"
+#define TIKTOK_SEND_MESSAGE_CV    "/data/machine_vision/apppic/sendmsg.png"   // 发私信
+#define TIKTOK_MAKEING_CV         "/data/machine_vision/apppic/makeing.png"   // 发私信
+#define TIKTOK_SEARCH_USER_CV     "/data/machine_vision/apppic/searchuser.png"
+#define TIKTOK_SEARCH_LIVING_CV     "/data/machine_vision/apppic/searchliving.png"
+#define TIKTOK_LIVINGROOM_BRAGGER_PASTE_CV     "/data/machine_vision/apppic/braggerpaste.png"
 
 
+#define TIKTOK_LIVING_ROOM_CV     "/data/machine_vision/apppic/islivingroom.png"
+#define TIKTOK_LIVING_ROOM_CV_MASK     "/data/machine_vision/apppic/isLivingroom_grey.png"
+#define TIKTOK_SEND_MESSAGE_UI_CV    "/data/machine_vision/apppic/pressSend_ui.png"   // 发私信
+#define TIKTOK_LIVING_UI_CV    "/data/machine_vision/apppic/isLiving.png"   // 直播中
 
+
+#define TIKTOK_LIVING_ELE_1_UI_CV    "/data/machine_vision/apppic/living_ele_1.png"   // 直播三要素
+#define TIKTOK_LIVING_ELE_2_UI_CV    "/data/machine_vision/apppic/living_ele_2.png"   // 直播三要素
+#define TIKTOK_LIVING_ELE_3_UI_CV    "/data/machine_vision/apppic/living_ele_3.png"   // 直播三要素
+#define TIKTOK_LIVING_FOLLOW_UI_CV    "/data/machine_vision/apppic/follow.png"   // 直播关注
 
 
 // 类声明
@@ -72,11 +96,19 @@ public:
     void start();// 启动线程
     void stop();// 停止线程
     void ContentExtraction();
+    void beatBack(int cnt);
+    int FollowMode(string FollowText, int circleTimes);
 
-    int SearchPersonZone(string Name);
-    int SendComment(string comments);
-    int SendMessageToPerson(string comments);
+    int SearchPersonZone(string Name);//进入搜索内容展示
+    int SendComment(string comments);//发送评论
+    int VideoContentLike(string name,string message);//作品点赞
+    int SendMessageToPerson(string name, string message);//发送私信
 
+    bool isLivingRoom();
+    int EntranceLivingRoom(string name);//进入指定直播间
+    int SendBraggerForLivingRoom(string message, bool noEdit);//发送弹幕僚
+    int FollowSpecifiedUser(string name);//关注指定人
+    void RandomFollowUser();//随机关注路人 （在胡粉直播间）
 private:
     // 线程执行的内容
     void run();

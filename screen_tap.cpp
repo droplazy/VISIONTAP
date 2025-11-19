@@ -5,7 +5,7 @@ int INPUT_TAP(ad_point pos) {
     // 构建 input tap 命令字符串
     char command[64];
     snprintf(command, sizeof(command), "input tap %d %d", pos.x, pos.y);
-    cout << "tap :" << pos.x << "," << pos.y;
+    cout << "tap :" << pos.x << "," << pos.y << "\n"<<endl;
     // 调用 system 执行命令
     return system(command);
 }
@@ -66,6 +66,19 @@ int ScreenTapUpToDown() {
     int duration = 300;  // 可调整滑动时长
     // 假设这里有打开控制面板的操作
     //system("input tap 512 50");  // 屏幕上方点击打开控制面板
+    return INPUT_SWIPE(start, end, duration);
+}
+
+int TAP_SWIPE_DOWN() {
+    ad_point start = {512 , 200};  //
+    ad_point end = {512 , 500};    //
+    int duration = 500;  // 可调整滑动时长
+    return INPUT_SWIPE(start, end, duration);
+}
+int TAP_SWIPE_UP() {
+    ad_point start = {512 , 500};  //
+    ad_point end = {512 , 200};    //
+    int duration = 500;  // 可调整滑动时长
     return INPUT_SWIPE(start, end, duration);
 }
 

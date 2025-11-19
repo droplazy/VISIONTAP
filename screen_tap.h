@@ -19,4 +19,9 @@ int DEBUG_TAP_OPERATIONS();
 
 int ScreenTapUpToDown();
 int ScreenTapDownToUp();
+int TAP_SWIPE_DOWN();
+int TAP_SWIPE_UP();
+// #define SWIPE_UP   INPUT_SWIPE({512,500,512 ,200,500);SHORT_DELAY;
+// #define SWIPE_DOWN INPUT_SWIPE(512,200,512 ,500,500);SHORT_DELAY;
+
 #endif

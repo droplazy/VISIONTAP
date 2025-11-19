@@ -20,7 +20,7 @@
 #define TEXTCOPY_PATH              "/data/machine_vision/apppic/tetxcopy.png"
 #define DELFILE_PATH               "/data/machine_vision/apppic/delfile.png"
 #define DELFILECERTAIN_PATH        "/data/machine_vision/apppic/delcertain.png"
-#define TEXTPASTE_PATH              "/data/machine_vision/apppic/TextPaste.png"
+#define TEXTPASTE_PATH             "/data/machine_vision/apppic/TextPaste.png"
 
 
 // 声明一个测试函数
@@ -42,5 +42,6 @@ void INPUT_TYPEINGTEXT(string text);
 
 int CopyTextFormSys(string texture);
 int FindTargetClick(string targetPng, bool clickdelay); //clickdelay=1 重点击  否则轻量点击
+ad_point FindTargetReturnPoint(string targetPng);//返回目标位置
 int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) ;
 #endif // 结束 #ifndef

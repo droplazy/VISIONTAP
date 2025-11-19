@@ -190,6 +190,98 @@ int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) {
     }
 }
 
+ad_point FindTargetReturnPoint(string targetPng)
+{
+    snap_screen();//重新生成一张背景图片
+    checkFileExistsWithTimeout("/data/machine_vision/background.png",3);
+    LONG_DELAY;
+    ad_point match = {-1,-1};
+
+
+   // cout << "entrance3!!!!!!\n";
+    cv::Mat targetImage;
+    cv::Mat templateImage;
+    int i;
+    for ( i = 0; i < 5; ++i) {
+        // 读取目标图像
+        targetImage = cv::imread(targetPng);
+        if (targetImage.empty()) {
+            std::cerr << "无法读取目标图像: " << i<<targetPng << std::endl;
+            continue;
+        }
+
+        // 读取模板图像
+        templateImage = cv::imread("/data/machine_vision/background.png");
+        if (templateImage.empty()) {
+            std::cerr << "无法读取模板图像" << i << std::endl;
+            continue; // 如果读取模板图像失败，返回-1
+        }
+        break;
+    }
+    if(i >4)
+    {
+        cerr << " 无法生成cv ：mat";
+        return  {-1,-1};
+    }
+
+
+
+    double score;
+    for (int i = 0; i < 1; ++i) {
+        // 找到目标图片
+        match = FindPicTarget(targetImage, templateImage, score);
+        cout << "score :" <<score<< "wait times : " << i+1 <<"\n";
+
+        // 如果匹配的分数小于0.8，返回-1
+        if (score < 0.8 ) {
+#if 1
+                // 在目标图像中用红色框标记匹配区域
+                cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
+                cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
+
+                // 用红色框住匹配区域
+                cv::rectangle(debugImage, matchRect, cv::Scalar(0, 255, 0), 2); // 红色框
+
+                // 计算矩形中心点
+                cv::Point center(matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2);
+
+                // 在矩形中心画一个红色点
+                cv::circle(debugImage, center, 5, cv::Scalar(0, 0, 255), -1); // 红色点
+
+                // 保存调试图像到本地
+                cv::imwrite("debug_image_with_red_box.jpg", debugImage);
+#endif
+
+                return {-1,-1};
+        }
+        else
+        {
+            break;
+        }
+        sleep(1);//
+    }
+#if 1
+    // 在目标图像中用红色框标记匹配区域
+    cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
+    cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
+
+    // 用红色框住匹配区域
+    cv::rectangle(debugImage, matchRect, cv::Scalar(0, 255, 0), 2); // 红色框
+
+    // 计算矩形中心点
+    cv::Point center(matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2);
+
+    // 在矩形中心画一个红色点
+    cv::circle(debugImage, center, 5, cv::Scalar(0, 0, 255), -1); // 红色点
+
+    // 保存调试图像到本地
+    cv::imwrite("debug_image_with_red_box.jpg", debugImage);
+#endif
+    match ={matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2};
+
+    return match;
+
+}
 
 int FindTargetClick(string targetPng,bool clickdelay)
 {
@@ -277,6 +369,8 @@ int CopyTextFormSys(string texture)
         cout << "warning :" << FILESYSTEM_PATH << "   NOT FOUND !" << endl;
         return -1;
     }
+    SHORT_DELAY;
+
     LONG_DELAY;
     //打开pipe文档
     ret = FindTargetClick(PIPETXT_PATH, false);
@@ -285,8 +379,9 @@ int CopyTextFormSys(string texture)
         cout << "warning :" << PIPETXT_PATH << "   NOT FOUND !" << endl;
         return -1;
     }
-    LONG_DELAY;
 #if 0
+    LONG_DELAY;
+
     //点击文本内容
     ret = FindTargetClick(TEXTCONTENT_PATH, true);
     if(ret < 0)
@@ -294,26 +389,32 @@ int CopyTextFormSys(string texture)
         cout << "warning :" << TEXTCONTENT_PATH << "   NOT FOUND !" << endl;
         return -1;
     }
-#else
-    LONG_DELAY;
-
-    ad_point clickP = TEXTURE_CLICK;
-    INPUT_TAP_DELAY(clickP,1000);
-    LONG_DELAY;
 #endif
-
-
-
-
-    // LONG_DELAY;
-    //点击全选
-    ret = FindTargetClick(ALLSELECT_PATH, false);
-    if(ret < 0)
-    {
-        cout << "warning :" << ALLSELECT_PATH << "   NOT FOUND !" << endl;
-        return -1;
-    }
     LONG_DELAY;
+    ad_point clickP;
+    for (int var = 0; var < 3; ++var) {
+        clickP = TEXTURE_CLICK;
+        INPUT_TAP_DELAY(clickP,1000);
+        cout << "press down \n " << endl;
+        SHORT_DELAY;
+        //点击全选
+        ret = FindTargetClick(ALLSELECT_PATH, false);
+        if(ret < 0)
+        {
+
+            if(var ==2)
+            {
+                cout << "warning :" << ALLSELECT_PATH << "   NOT FOUND ! AND RETURN " <<var<< endl;
+                return -1 ;
+            }
+            cout << "warning :" << ALLSELECT_PATH << "   NOT FOUND !" <<var<< endl;
+            continue;
+        }
+
+        break;
+        SHORT_DELAY;
+
+    }
 
     //点击复制
     ret = FindTargetClick(TEXTCOPY_PATH, false);
@@ -332,7 +433,7 @@ int CopyTextFormSys(string texture)
         cout << "warning :" << PIPETXT_PATH << "   NOT FOUND !" << endl;
         return -1;
     }
-    SHORT_DELAY;
+    SHORT_DELAY;;
     //删除文本文件
     ret = FindTargetClick(DELFILE_PATH, false);
     if(ret < 0)
