@@ -196,6 +196,22 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
                 }
                 turnon_application(APP_TIKTOK_ENUM);
 
+                int i=0;
+                for (i = 0; i < 5; ++i)
+                {
+                    cout << "检查直播间三要素 >>>......\n" << endl;
+
+                    if( isLivingRoom())
+                    {
+                        cout << "确认完毕 >>>......\n" << endl;
+                        break;
+                    }
+                }
+                if(i >=4)
+                {
+                    isEnter =false;
+                    continue;
+                }
                 isEnter =true;
                 // exit(0);
             }
@@ -204,22 +220,6 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
 
 
 
-        int i=0;
-        for (i = 0; i < 5; ++i)
-        {
-            cout << "检查直播间三要素 >>>......\n" << endl;
-
-            if( isLivingRoom())
-            {
-                cout << "确认完毕 >>>......\n" << endl;
-                break;
-            }
-        }
-        if(i >=4)
-        {
-            isEnter =false;
-            continue;
-        }
 
 
         for (int var = 0; var < 1; ++var) {
@@ -283,14 +283,14 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
     double score =0.0f;
     int lowScoreCnt=0;
     auto start = std::chrono::high_resolution_clock::now();
-    for(int i =0;i<clycles*999999;i++)
+    for(int i =0;i<clycles;i++)
     {
         // 获取当前时间点
         auto end = std::chrono::high_resolution_clock::now();
 
         // 计算时间差，单位为毫秒
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-     //   std::cout << "五秒钟后上滑视频" << duration.count() << " milliseconds" << std::endl;
+        //   std::cout << "五秒钟后上滑视频" << duration.count() << " milliseconds" << std::endl;
         if(duration.count() >6000)
         {
             // 输出时间差
@@ -304,7 +304,7 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
             cout <<"该内容可以被点赞   给予点赞\n" << endl;
             INPUT_TAP(like);
             std::this_thread::sleep_for(std::chrono::seconds(3));
-        /*    scrollingUP();
+            /*    scrollingUP();
             auto start = std::chrono::high_resolution_clock::now();*/
         }
         else if( score < 0.3)
@@ -334,8 +334,8 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
                     scrollingUP();
                 }else
                 {
-                cout <<"未知内容...\n" << endl;
-                lowScoreCnt++;
+                    cout <<"未知内容...\n" << endl;
+                    lowScoreCnt++;
                 }
             }
         }
@@ -609,6 +609,7 @@ int APP_TIKTOK::EntranceLivingRoom(string name)
 }
 void APP_TIKTOK::RandomFollowUser()
 {
+#if 1
     for (int i = 0; i < 5; ++i) {
         cout << "检查直播间三要素 >>>......\n" << endl;
 
@@ -624,7 +625,7 @@ void APP_TIKTOK::RandomFollowUser()
         }
         //   LONG_DELAY;
     }
-
+#endif
 
     ad_point clickP = {56,464};
     INPUT_TAP(clickP);
@@ -643,7 +644,7 @@ void APP_TIKTOK::RandomFollowUser()
                 ad_point clickP = {56,464};
                 INPUT_TAP(clickP);
                 SHORT_DELAY;
-
+                break;
             }
             else if(var >=2)
             {
@@ -703,28 +704,41 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
 #endif
     ad_point clickP ;
     ad_point match;
-    for(int var = 0; var < 5; ++var)
+    int var=0;
+    for( var = 0; var < 5; ++var)
     {
         clickP = TIKTOK_OPT_BARRAGE_BUTTON;
         INPUT_TAP(clickP);
         usleep(1200*1000);
-
-        match = FindTargetReturnPoint(TIKTOK_LIVING_KEYBOARD_UI_CV);//todo
-        if(match.x== -1 || match.y== -1)
+        int a=0;
+        for(a = 0; a < 5; ++a)
         {
-            cout << "等待键盘弹出" <<endl;
+            match = FindTargetReturnPoint(TIKTOK_LIVING_KEYBOARD_UI_CV);//todo
+            if(match.x== -1 || match.y== -1)
+            {
+                cout << "等待键盘弹出" <<endl;
 
-            continue;
+                continue;
+            }
+            else
+            {
+                cout << "键盘已经弹出" <<endl;
+                break;
+            }
         }
-        else
+        if(a<5)
         {
-            cout << "键盘已经弹出" <<endl;
             break;
         }
     }
+    if(var>4)
+    {
+        cout << "键盘弹出失败\n" <<endl;
 
+        return -1;
+    }
 
-    for (int var = 0; var < 5; ++var) {
+    for ( var = 0; var < 5; ++var) {
         match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
         if(match.x== -1 || match.y== -1)
         {
@@ -737,8 +751,14 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
             break;
 
     }
+    if(var>4)
+    {
+        cout << "编辑失败\n" <<endl;
 
-    for (int var = 0; var < 5; ++var)
+        return -1;
+    }
+
+    for ( var = 0; var < 5; ++var)
     {
 
 
@@ -767,7 +787,11 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
             break;
         }
     }
-
+    if(var>4)
+    {
+        cout << "粘贴失败\n" <<endl;
+        return -1;
+    }
     clickP = match;
     INPUT_TAP(clickP);
 
@@ -807,8 +831,6 @@ int APP_TIKTOK::FollowSpecifiedUser(string name)
 
     return 0;
 }
-
-
 
 int APP_TIKTOK::SendMessageToPerson(string name,string message)
 {
@@ -956,9 +978,15 @@ bool APP_TIKTOK::LaunchToHomepage()
 void APP_TIKTOK::run()
 {
     // 线程执行的内容
+    string mesg ="";string str1, str2;
+    // 计算 FollowMode 的执行时间
+    auto start = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    str1 = "FollowMode执行时间: " + std::to_string(duration.count()) + " 毫秒";
     while (1)
     {
-        /*   if(!running)
+        if(!running)
         {
             if(LaunchToHomepage())
             {
@@ -969,9 +997,31 @@ void APP_TIKTOK::run()
             {
                 continue;
             }
-        }*/
+        }
+        // 计算 FollowMode 的执行时间
+         start = std::chrono::high_resolution_clock::now();
+        FollowMode("关必回🪅🪅🪅🪅🪅关必回🪅🪅🪅🪅🪅", 100);
+         end = std::chrono::high_resolution_clock::now();
+         duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        str1 = "FollowMode执行时间: " + std::to_string(duration.count()) + " 毫秒";
 
-        ScrollingShortVideos(5000);
+        // 执行 beatBack 和读取温度
+        beatBack(6);
+        mesg = readTemperature() + " " + str1;
+        SendMessageToPerson("147003193", mesg);
+
+        // 计算 ScrollingShortVideos 的执行时间
+        start = std::chrono::high_resolution_clock::now();
+        ScrollingShortVideos(50);
+        end = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        str2 = "ScrollingShortVideos执行时间: " + std::to_string(duration.count()) + " 毫秒";
+
+        // 执行 beatBack 和读取温度
+        beatBack(6);
+        mesg = readTemperature() + " " + str2;
+        SendMessageToPerson("147003193", mesg);
+
 
     }
 

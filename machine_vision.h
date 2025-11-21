@@ -40,6 +40,7 @@ void TURN_ON_KUAISHOU(void);        // 启动 Kuaishou
 void TURN_ON_BILIBILI(void);        // 启动 Bilibili
 void INPUT_TYPEINGTEXT(string text);
 
+std::string readTemperature();
 int CopyTextFormSys(string texture);
 int FindTargetClick(string targetPng, bool clickdelay); //clickdelay=1 重点击  否则轻量点击
 ad_point FindTargetReturnPoint(string targetPng);//返回目标位置

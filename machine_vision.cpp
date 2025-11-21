@@ -189,7 +189,20 @@ int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) {
         usleep(100000);  // 100毫秒
     }
 }
+std::string readTemperature() {
+    std::ifstream tempFile("/sys/class/thermal/thermal_zone0/temp");
+    if (!tempFile.is_open()) {
+        return "无法读取温度数据!";
+    }
 
+    int temp;
+    tempFile >> temp;
+    tempFile.close();
+
+    // 将温度转化为摄氏度并返回
+    double celsiusTemp = temp / 1000.0;
+    return "当前设备温度: " + std::to_string(celsiusTemp) + " °C";
+}
 ad_point FindTargetReturnPoint(string targetPng)
 {
     snap_screen();//重新生成一张背景图片
@@ -233,7 +246,7 @@ ad_point FindTargetReturnPoint(string targetPng)
         cout << "score :" <<score<< "wait times : " << i+1 <<"\n";
 
         // 如果匹配的分数小于0.8，返回-1
-        if (score < 0.8 ) {
+        if (score < 0.7 ) {
 #if 0
                 // 在目标图像中用红色框标记匹配区域
                 cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
