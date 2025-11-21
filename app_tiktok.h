@@ -14,8 +14,8 @@
 
 #define TIKTOK_OPT_COMMENTS {1000, 249}    // 评论
 #define TIKTOK_OPT_CLOSE_COMMENTS {1000, 197}  // 关闭评论
-#define TIKTOK_OPT_LIKES {994, 199}       // 点赞
-#define TIKTOK_OPT_COLLECTIONS {1000, 307}   // 收藏
+#define TIKTOK_OPT_LIKES {994, 200}       // 点赞
+#define TIKTOK_OPT_FARVOUR {1000, 307}   // 收藏
 #define TIKTOK_OPT_SEARCH {988, 49}        // 搜索
 #define TIKTOK_OPT_SEARCH_RETURN {33, 51}   // 搜索返回
 #define TIKTOK_OPT_MESSAGES {593, 518}     // 消息
@@ -96,6 +96,13 @@ public:
         ADVERTISEMENT,    // 广告
         LONG_VIDEO        // 长视频
     };
+    // 枚举类型
+    enum CONTENT_OPT {
+        GIVELIKE_OPT,
+        COMMENT_OPT,
+        FAVOURITE_OPT,
+        FORWARD_OPT
+    };
     // 构造函数和析构函数
     APP_TIKTOK();
     ~APP_TIKTOK();
@@ -103,8 +110,8 @@ public:
 
 
     //养号
-    int FollowMode(string FollowText, int circleTimes);//找直播间互粉
-
+    void FollowMode(string FollowText, int circleTimes);//找直播间互粉
+    void ScrollingShortVideos(int clycles);//刷短视频  穿插分享 点赞 评论
 
 
 
@@ -112,30 +119,36 @@ public:
     bool checkAPKRunning(string apk_name);
     void start();// 启动线程
     void stop();// 停止线程
+
+
+
+private:
+    // 线程执行的内容
+    void run();
+    void scrollingUP();
+    ContentType contentType =UNKNOW;
+    bool running;      // 用来控制线程是否继续运行
+    std::thread t;     // 线程对象
+    void scrollingDown();
+    bool SearchShortVelement(ad_point &like, ad_point &comment, ad_point &farvour, ad_point &forward,double &finalscore);
     bool CheckLaunching();//启动中
     void ContentExtraction();//内容获取
     void CheckUpgrade();//检查升级
     bool ShowMyHomepage();
     void beatBack(int cnt);
-    void randomCickScreen();
+    void randomCickScreen();//直播间点赞
     int SearchPersonZone(string Name);//进入搜索内容展示
     int SendComment(string comments);//发送评论
-    int VideoContentLike(string name,string message);//作品点赞
+    int VideoContentLike(string name,string message);//作品点赞  在用户个人主页内 未完成
+    void VideoContentOPT(CONTENT_OPT operat);//作品点赞  在用户个人主页内 未完成
+    bool VideoContentForward();
     int SendMessageToPerson(string name, string message);//发送私信
-
     bool isLivingRoom();
     int EntranceLivingRoom(string name);//进入指定直播间
     int SendBraggerForLivingRoom(string message, bool noEdit);//发送弹幕僚
     int FollowSpecifiedUser(string name);//关注指定人
     void RandomFollowUser();//随机关注路人 （在胡粉直播间）
     bool LaunchToHomepage();
-
-private:
-    // 线程执行的内容
-    void run();
-    ContentType contentType =UNKNOW;
-    bool running;      // 用来控制线程是否继续运行
-    std::thread t;     // 线程对象
 };
 
 #endif // APP_TIKTOK_H
