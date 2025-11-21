@@ -64,17 +64,25 @@
 #define TIKTOK_SEARCH_LIVING_CV     "/data/machine_vision/apppic/searchliving.png"
 #define TIKTOK_LIVINGROOM_BRAGGER_PASTE_CV     "/data/machine_vision/apppic/braggerpaste.png"
 
+#define TIKTOK_LAUNCHING_CV     "/data/machine_vision/apppic/LaunchingTiktok.png"
+#define TIKTOK_LATER_CV     "/data/machine_vision/apppic/Later.png"
+#define TIKTOK_HOMEPAGE_CV     "/data/machine_vision/apppic/homepage_ele.png"
+
 
 #define TIKTOK_LIVING_ROOM_CV     "/data/machine_vision/apppic/islivingroom.png"
 #define TIKTOK_LIVING_ROOM_CV_MASK     "/data/machine_vision/apppic/isLivingroom_grey.png"
 #define TIKTOK_SEND_MESSAGE_UI_CV    "/data/machine_vision/apppic/pressSend_ui.png"   // 发私信
 #define TIKTOK_LIVING_UI_CV    "/data/machine_vision/apppic/isLiving.png"   // 直播中
+#define TIKTOK_LIVING_UI_2_CV    "/data/machine_vision/apppic/isLiving_2.png"   // 直播中
 
 
 #define TIKTOK_LIVING_ELE_1_UI_CV    "/data/machine_vision/apppic/living_ele_1.png"   // 直播三要素
 #define TIKTOK_LIVING_ELE_2_UI_CV    "/data/machine_vision/apppic/living_ele_2.png"   // 直播三要素
 #define TIKTOK_LIVING_ELE_3_UI_CV    "/data/machine_vision/apppic/living_ele_3.png"   // 直播三要素
 #define TIKTOK_LIVING_FOLLOW_UI_CV    "/data/machine_vision/apppic/follow.png"   // 直播关注
+#define TIKTOK_LIVING_KEYBOARD_UI_CV    "/data/machine_vision/apppic/keyboard.png"   // 直播关注
+#define TIKTOK_LIVING_TERMINATE_UI_CV    "/data/machine_vision/apppic/livingTerminerd.png"   // 直播已经结束
+#define TIKTOK_LIVING_FOLLOWED_UI_CV    "/data/machine_vision/apppic/Followed.png"   // 直播已经结束
 
 
 // 类声明
@@ -92,13 +100,24 @@ public:
     APP_TIKTOK();
     ~APP_TIKTOK();
 
+
+
+    //养号
+    int FollowMode(string FollowText, int circleTimes);//找直播间互粉
+
+
+
+
+
     bool checkAPKRunning(string apk_name);
     void start();// 启动线程
     void stop();// 停止线程
-    void ContentExtraction();
+    bool CheckLaunching();//启动中
+    void ContentExtraction();//内容获取
+    void CheckUpgrade();//检查升级
+    bool ShowMyHomepage();
     void beatBack(int cnt);
-    int FollowMode(string FollowText, int circleTimes);
-
+    void randomCickScreen();
     int SearchPersonZone(string Name);//进入搜索内容展示
     int SendComment(string comments);//发送评论
     int VideoContentLike(string name,string message);//作品点赞
@@ -109,6 +128,8 @@ public:
     int SendBraggerForLivingRoom(string message, bool noEdit);//发送弹幕僚
     int FollowSpecifiedUser(string name);//关注指定人
     void RandomFollowUser();//随机关注路人 （在胡粉直播间）
+    bool LaunchToHomepage();
+
 private:
     // 线程执行的内容
     void run();

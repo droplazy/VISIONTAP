@@ -64,7 +64,9 @@ void APP_TIKTOK::stop() {
 }
 void APP_TIKTOK::ContentExtraction()
 {
-    running = checkAPKRunning(APK_TIKTOK_NAME);
+    std::cout << std::boolalpha;
+
+//    running = checkAPKRunning(APK_TIKTOK_NAME);
 
     snap_screen();
     cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
@@ -81,18 +83,75 @@ void APP_TIKTOK::ContentExtraction()
         contentType =SHORT_VIDEO;
     }
     if (contentType == LIVE_STREAMING) {
-       // std::cout << "当前内容: 直播" << std::endl;
+        std::cout << "当前内容: 直播     "<<std::endl;
     } else if (contentType == SHORT_VIDEO) {
-       // std::cout << "当前内容: 短视频" << std::endl;
+        std::cout << "当前内容: 短视频   " << std::endl;
     }
 
-    // 打印进程状态
-    if (running) {
-      //  std::cout << "进程: 正常运行" << std::endl;
-    } else {
-        std::cout << "进程: 停止" << std::endl;
-    }
 }
+
+void APP_TIKTOK::CheckUpgrade()
+{
+    snap_screen();
+
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread(TIKTOK_LATER_CV); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+    if(score >0.8)
+    {
+        cout << "检测到升级提示\n"<< endl;
+        INPUT_TAP(match);
+    }
+
+    return ;
+}
+
+bool APP_TIKTOK::ShowMyHomepage()
+{
+    ad_point clickp= TIKTOK_OPT_I;
+    INPUT_TAP(clickp);
+    LONG_DELAY;
+
+
+
+    snap_screen();
+
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread(TIKTOK_HOMEPAGE_CV); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+    if(score >0.8)
+    {
+        cout << "进入个人主页成功\n"<< endl;
+        return true;
+
+    }
+    cout << "进入个人主页失败\n"<< endl;
+
+    return false;
+}
+
+bool APP_TIKTOK::CheckLaunching()
+{
+    snap_screen();
+
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread(TIKTOK_LAUNCHING_CV); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+    if(score >0.8)
+    {
+        cout << "应用启动中....\n"<< endl;
+        return false;
+
+    }
+
+    cout << "应用启动成功....\n"<< endl;
+
+    return true;
+}
+
 
 void APP_TIKTOK::beatBack(int cnt)
 {
@@ -105,16 +164,75 @@ void APP_TIKTOK::beatBack(int cnt)
 
 int APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
 {
-    EntranceLivingRoom("交朋友直播");//进入指定直播间
-    if(CopyTextFormSys(FollowText) <0 )
-    {
-        cout << "error : 无法复制文本!\n";
-        return -1;
-    }
 
-    for (int sec = 0; sec < circleTimes; ++sec) {
-        RandomFollowUser();
-        SendBraggerForLivingRoom(FollowText,true);
+
+    // if(CopyTextFormSys(FollowText) <0 )
+    // {
+    //     cout << "错误无法复制文本!\n";
+    //     return -1;
+    // }
+    //  turnon_application(APP_TIKTOK_ENUM);
+    bool isEnter= false;
+     int ret ;
+    for (int sec = 0; sec < circleTimes; ++sec)
+     {
+        if(!isEnter)
+        {
+             ret = EntranceLivingRoom("互涨1000粉");//进入指定直播间
+             if(ret == -1)
+             {
+                 cout << "无法进入直播间\n"<< endl;
+                 beatBack(6);
+                 continue;
+             }
+             else
+             {
+                 cout << "进入直播间成功\n"<< endl;
+                 SHORT_DELAY;
+                 if(CopyTextFormSys(FollowText) <0 )
+                 {
+                     cout << "error : 无法复制文本!\n";
+                     return -1;
+                 }
+                 turnon_application(APP_TIKTOK_ENUM);
+
+                 isEnter =true;
+                 // exit(0);
+             }
+        }
+
+
+
+
+        int i=0;
+        for (i = 0; i < 5; ++i)
+        {
+            cout << "检查直播间三要素 >>>......\n" << endl;
+
+            if( isLivingRoom())
+            {
+                cout << "确认完毕 >>>......\n" << endl;
+                break;
+            }
+        }
+        if(i >=4)
+        {
+            isEnter =false;
+            continue;
+        }
+
+
+        for (int var = 0; var < 1; ++var) {
+            RandomFollowUser();
+        }
+        SHORT_DELAY;
+        ret = SendBraggerForLivingRoom(FollowText,true);
+        if ( ret== -2)
+        {
+            isEnter =false;
+        }
+        SHORT_DELAY;
+     //   randomCickScreen();
     }
 
 
@@ -252,6 +370,22 @@ int APP_TIKTOK::VideoContentLike(string name,string message)
 
 }
 
+void APP_TIKTOK::randomCickScreen()
+{
+    ad_point clickP={512,300};
+    INPUT_TAP(clickP);
+    usleep(100*1000);
+    clickP={500,310};
+    INPUT_TAP(clickP);
+    usleep(100*1000);
+    clickP={520,250};
+    INPUT_TAP(clickP);
+    usleep(100*1000);
+    clickP={525,322};
+    INPUT_TAP(clickP);
+    usleep(100*1000);
+}
+
 int APP_TIKTOK::EntranceLivingRoom(string name)
 {
     SearchPersonZone(name);
@@ -274,44 +408,107 @@ int APP_TIKTOK::EntranceLivingRoom(string name)
     }
     LONG_DELAY;
 #endif
-    ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_UI_CV);//todo
-    if(match.x== -1 || match.y== -1)
-    {
-        cout << "warining : "<<TIKTOK_LIVING_UI_CV<<"not found" <<endl;
-        return -1;
+    ad_point match;
+    ad_point clickP;
+    for (int var = 0; var < 3; ++var) {
+        match = FindTargetReturnPoint(TIKTOK_LIVING_UI_CV);//todo
+        if(match.x== -1 || match.y== -1)
+        {
+
+             match = FindTargetReturnPoint(TIKTOK_LIVING_UI_2_CV);//todo
+            if(match.x== -1 || match.y== -1)
+            {
+                cout << "找不到直播间入口" <<endl;
+
+                if(var>=2)
+                    return -1;
+                else
+                {
+                    cout << "继续搜索" <<endl;
+
+                    clickP = TIKTOK_OPT_CONTINUE_SEARCH;
+                    INPUT_TAP_DELAY(clickP,1000);
+                    continue;
+                }
+             }
+
+        }
     }
     LONG_DELAY;
-    ad_point clickP = match;
+    clickP = match;
     INPUT_TAP(clickP);
     SHORT_DELAY;
 
    // ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_ROOM_CV);//todo
-    cout << "Is living room ： " <<isLivingRoom() << "\n " << endl;
+   // cout << "Is living room ： " <<isLivingRoom() << "\n " << endl;
 
     return 0;
 }
 void APP_TIKTOK::RandomFollowUser()
 {
+    for (int i = 0; i < 5; ++i) {
+        cout << "检查直播间三要素 >>>......\n" << endl;
+
+        if( isLivingRoom())
+        {
+            cout << "确认完毕 >>>......\n" << endl;
+            break;
+        }
+        else
+        {
+            cout << "未能确认 返回......\n" << endl;
+            return ;
+        }
+        //   LONG_DELAY;
+    }
+
+
     ad_point clickP = {56,464};
     INPUT_TAP(clickP);
-
+    LONG_DELAY;
     for (int var = 0; var < 3; ++var) {
+
+        cout << "检查关注界面n" <<endl;
         ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_FOLLOW_UI_CV);//todo
         if(match.x== -1 || match.y== -1)
         {
-            cout << "warining : "<<TIKTOK_LIVING_FOLLOW_UI_CV<<"not found"<<"cnt:"<<var<<"\n" <<endl;
+            cout << "未发现关注按钮\n" <<endl;
+            match = FindTargetReturnPoint(TIKTOK_LIVING_FOLLOWED_UI_CV);//todo
+            if(match.x>0&& match.y>0)
+            {
+                cout << "该用户已经关注\n"<<endl;
+                ad_point clickP = {56,464};
+                INPUT_TAP(clickP);
+                SHORT_DELAY;
+
+            }
+            else if(var >=2)
+            {
+                cout << "一直未发现关注按钮\n" <<endl;
+                return;
+            }
+            else
+            {
+                // cout << "继续点击一次\n" <<endl;
+                // ad_point clickP = {56,464};
+                // INPUT_TAP(clickP);
+                // LONG_DELAY;
+            }
+            continue;
         }
         else
         {
             clickP = match;
             INPUT_TAP(clickP);
-            cout << "FOLLOW SOME ONE success!\n" << endl;
-
+            cout << "已经随机一名用户\n" << endl;
+            LONG_DELAY;
             ad_point clickP = {56,464};
             INPUT_TAP(clickP);
+            SHORT_DELAY;
             break;
         }
     }
+
 }
 
 int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
@@ -325,23 +522,45 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
         }
         turnon_application(APP_TIKTOK_ENUM);
     }
-
+#if 0
     for (int i = 0; i < 5; ++i) {
-        cout << "waiiting app activing >>>......\n" << endl;
+        cout << "检查直播间三要素 >>>......\n" << endl;
 
         if( isLivingRoom())
         {
+            cout << "确认完毕 >>>......\n" << endl;
             break;
         }
-        LONG_DELAY;
+        else
+        {
+          return -2;
+        }
+     //   LONG_DELAY;
+    }
+#endif
+    ad_point clickP ;
+    ad_point match;
+    for(int var = 0; var < 5; ++var)
+    {
+        clickP = TIKTOK_OPT_BARRAGE_BUTTON;
+        INPUT_TAP(clickP);
+        usleep(1200*1000);
+
+        match = FindTargetReturnPoint(TIKTOK_LIVING_KEYBOARD_UI_CV);//todo
+        if(match.x== -1 || match.y== -1)
+        {
+            cout << "等待键盘弹出" <<endl;
+
+            continue;
+        }
+        else
+        {
+            cout << "键盘已经弹出" <<endl;
+            break;
+        }
     }
 
-    ad_point clickP = TIKTOK_OPT_BARRAGE_BUTTON;
-    INPUT_TAP(clickP);
-    LONG_DELAY;
-    LONG_DELAY;
 
-    ad_point match;
     for (int var = 0; var < 5; ++var) {
         match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
         if(match.x== -1 || match.y== -1)
@@ -356,25 +575,38 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
 
     }
 
-    LONG_DELAY;
-    match.x -= 250;
-    clickP = match;
-    INPUT_TAP(clickP);
-    SHORT_DELAY;
-
-    INPUT_TAP_DELAY(clickP,500);
-    LONG_DELAY;
-    match = FindTargetReturnPoint(TIKTOK_LIVINGROOM_BRAGGER_PASTE_CV);//todo
-    if(match.x== -1 || match.y== -1)
+    for (int var = 0; var < 5; ++var)
     {
-        cout << "warining : cannot paste at living room " <<endl;
-        return -1;
+
+
+        SHORT_DELAY;
+        match.x -= 250;
+        clickP = match;
+        INPUT_TAP(clickP);//点击编辑栏目
+        SHORT_DELAY;
+        INPUT_TAP_DELAY(clickP,500);//长按编辑栏目
+        SHORT_DELAY;
+        match = FindTargetReturnPoint(TIKTOK_LIVINGROOM_BRAGGER_PASTE_CV);//todo
+        if(match.x== -1 || match.y== -1)
+        {
+            cout << "warining : cannot paste at living room " <<endl;
+            // cout << "warining : cannot paste at living room " <<endl;
+            // cout << "warining : cannot paste at living room " <<endl;//TODO
+            // cout << "warining : cannot paste at living room " <<endl;
+            // cout << "warining : cannot paste at living room " <<endl;
+            // sleep(3);
+            match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
+            continue ;
+        }
+        else
+        {
+            cout << "准备点击粘贴按钮\n"<<endl;
+            break;
+        }
     }
-    LONG_DELAY;
-    //点击粘贴
+
     clickP = match;
     INPUT_TAP(clickP);
-    LONG_DELAY;
 
     match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
     if(match.x== -1 || match.y== -1)
@@ -382,10 +614,10 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
         cout << "warining : cannot locate editor" <<endl;
         return -1;
     }
-    LONG_DELAY;
+    // LONG_DELAY;
     clickP = match;
     INPUT_TAP(clickP);
-    LONG_DELAY;
+    //LONG_DELAY;
 
     //cout << "waitting send commder ....\n" <<endl;
 
@@ -485,7 +717,7 @@ bool APP_TIKTOK::isLivingRoom()
     ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_ELE_1_UI_CV);//todo
     if(match.x== -1 || match.y== -1)
     {
-        cout << "warining : "<<TIKTOK_LIVING_ELE_1_UI_CV<<"not found" <<endl;
+        cout << "未发现小心心按钮\n" <<endl;
     }
     else
         eleGet ++;
@@ -493,7 +725,7 @@ bool APP_TIKTOK::isLivingRoom()
     match = FindTargetReturnPoint(TIKTOK_LIVING_ELE_2_UI_CV);//todo
     if(match.x== -1 || match.y== -1)
     {
-        cout << "warining : "<<TIKTOK_LIVING_ELE_2_UI_CV<<"not found" <<endl;
+        cout << "未发现礼物按钮\n" <<endl;
     }
     else
         eleGet ++;
@@ -501,7 +733,16 @@ bool APP_TIKTOK::isLivingRoom()
     match = FindTargetReturnPoint(TIKTOK_LIVING_ELE_3_UI_CV);//todo
     if(match.x== -1 || match.y== -1)
     {
-        cout << "warining : "<<TIKTOK_LIVING_ELE_3_UI_CV<<"not found" <<endl;
+        cout << "未发现直播广场按钮\n" <<endl;
+    }
+    else
+        eleGet ++;
+
+    match = FindTargetReturnPoint(TIKTOK_LIVING_TERMINATE_UI_CV);//todo
+    if(match.x>0&& match.y>0)
+    {
+        eleGet =0;
+        cout << "直播已经终止\n"<<endl;
     }
     else
         eleGet ++;
@@ -512,17 +753,75 @@ bool APP_TIKTOK::isLivingRoom()
     else
         ret = false;
 
-    LONG_DELAY;
+  //  LONG_DELAY;
 
     return ret;
 }
-void APP_TIKTOK::run() {
-    // 线程执行的内容
-    std::cout << std::boolalpha;
-    while (1) {
-        this_thread::sleep_for(chrono::seconds(1));  // 等待一秒
-        //FollowMode("🈶关必回🈶关必回🈶关必回🈶关必回🈶关必回😍😍😍😍😍",60);
-        SendMessageToPerson("神田川","我还活我还活着我还活着🙍🙍😍😍😍😍😍🦸🏇");
-        beatBack(6);
+bool APP_TIKTOK::LaunchToHomepage()
+{
+    if(!CheckLaunching())
+    {
+        return false;
+    }
+    else
+    {
+        CheckUpgrade();
+        bool isEnterHomePage =false;
+        int var=0;
+        for ( var = 0; var < 10; ++var)
+        {
+            isEnterHomePage =ShowMyHomepage();
+            if(isEnterHomePage)
+            {
+                break;
+            }
+            usleep(500*1000);
+        }
+        if(var >=10)
+        {
+            cout << "未能进入主页.....\n"<< endl;
+             return false;
+        }
+        else
+        {
+            cout << "成功进入主页.....\n"<< endl;
+            return true;
+        }
     }
 }
+
+void APP_TIKTOK::run()
+{
+    // 线程执行的内容
+    while (1)
+    {
+        if(!running)
+        {
+            if(LaunchToHomepage())
+            {
+                running =true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        this_thread::sleep_for(chrono::seconds(1));  // 等待一秒
+        ContentExtraction();
+    }
+
+}
+//FollowMode("关必回🪅🪅🪅🪅🪅关必回🪅🪅🪅🪅🪅",100);
+// RandomFollowUser();
+// SendBraggerForLivingRoom("关必回🪅🪅🪅🪅🪅关必回🪅🪅🪅🪅🪅",true);
+
+// for (int var = 0; var < 1; ++var) {
+//     RandomFollowUser();
+// }
+// RandomFollowUser();
+// if(SendBraggerForLivingRoom("关必回🪅🪅🪅🪅🪅关必回🪅🪅🪅🪅🪅",true))
+// {
+//      beatBack(6);
+//     LONG_DELAY;
+//      EntranceLivingRoom();
+// }

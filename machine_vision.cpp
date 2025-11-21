@@ -194,7 +194,7 @@ ad_point FindTargetReturnPoint(string targetPng)
 {
     snap_screen();//重新生成一张背景图片
     checkFileExistsWithTimeout("/data/machine_vision/background.png",3);
-    LONG_DELAY;
+    //LONG_DELAY;
     ad_point match = {-1,-1};
 
 
@@ -234,7 +234,7 @@ ad_point FindTargetReturnPoint(string targetPng)
 
         // 如果匹配的分数小于0.8，返回-1
         if (score < 0.8 ) {
-#if 1
+#if 0
                 // 在目标图像中用红色框标记匹配区域
                 cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
                 cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
@@ -258,7 +258,7 @@ ad_point FindTargetReturnPoint(string targetPng)
         {
             break;
         }
-        sleep(1);//
+       // sleep(1);//
     }
 #if 1
     // 在目标图像中用红色框标记匹配区域
