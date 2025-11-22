@@ -998,6 +998,8 @@ void APP_TIKTOK::run()
                 continue;
             }
         }
+
+#if 1
         // 计算 FollowMode 的执行时间
          start = std::chrono::high_resolution_clock::now();
         FollowMode("关必回🪅🪅🪅🪅🪅关必回🪅🪅🪅🪅🪅", 100);
@@ -1016,7 +1018,7 @@ void APP_TIKTOK::run()
         end = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         str2 = "ScrollingShortVideos执行时间: " + std::to_string(duration.count()) + " 毫秒";
-
+#endif
         // 执行 beatBack 和读取温度
         beatBack(6);
         mesg = readTemperature() + " " + str2;
