@@ -58,6 +58,7 @@
 
 #define TIKTOK_COMMENTS_CV        "/data/machine_vision/apppic/comments.png"
 #define TIKTOK_PRESSSEND_CV       "/data/machine_vision/apppic/pressSend.png"
+#define TIKTOK_PRESSSEND_LIVINGROOM_CV       "/data/machine_vision/apppic/pressSend_livingrrom.png"
 #define TIKTOK_SEND_MESSAGE_CV    "/data/machine_vision/apppic/sendmsg.png"   // 发私信
 #define TIKTOK_MAKEING_CV         "/data/machine_vision/apppic/makeing.png"   // 发私信
 #define TIKTOK_SEARCH_USER_CV     "/data/machine_vision/apppic/searchuser.png"
@@ -80,10 +81,21 @@
 #define TIKTOK_LIVING_ELE_2_UI_CV    "/data/machine_vision/apppic/living_ele_2.png"   // 直播三要素
 #define TIKTOK_LIVING_ELE_3_UI_CV    "/data/machine_vision/apppic/living_ele_3.png"   // 直播三要素
 #define TIKTOK_LIVING_FOLLOW_UI_CV    "/data/machine_vision/apppic/follow.png"   // 直播关注
-#define TIKTOK_LIVING_KEYBOARD_UI_CV    "/data/machine_vision/apppic/keyboard.png"   // 直播关注
-#define TIKTOK_LIVING_TERMINATE_UI_CV    "/data/machine_vision/apppic/livingTerminerd.png"   // 直播已经结束
-#define TIKTOK_LIVING_FOLLOWED_UI_CV    "/data/machine_vision/apppic/Followed.png"   // 直播已经结束
+#define TIKTOK_LIVING_KEYBOARD_UI_CV    "/data/machine_vision/apppic/keyboard.png"   //
+#define TIKTOK_LIVING_TERMINATE_UI_CV    "/data/machine_vision/apppic/livingTerminerd.png"   //
+#define TIKTOK_LIVING_FOLLOWED_UI_CV    "/data/machine_vision/apppic/Followed.png"   //
+#define TIKTOK_LIVING_FOLLOWED_2_UI_CV    "/data/machine_vision/apppic/Followed_2.png"   //
 
+#define TIKTOK_LIVING_FOLLOW_OK_UI_CV    "/data/machine_vision/apppic/followsuccess.png"   //
+#define TIKTOK_LIVING_FOLLOW_MAXED_UI_CV    "/data/machine_vision/apppic/followmax.png"   //
+
+#define TIKTOK_CONTENT_SHARE_CV    "/data/machine_vision/apppic/contentshare.png"   //
+#define TIKTOK_CONTENT_SHAREMORE_CV    "/data/machine_vision/apppic/sharemore.png"   //
+#define TIKTOK_CONTENT_MUILTYTALK_CV    "/data/machine_vision/apppic/muiltTalk.png"   //
+#define TIKTOK_CONTENT_SPEICYTALK_CV    "/data/machine_vision/apppic/speicymuilty.png"   //
+#define TIKTOK_CONTENT_SHARESEND_CV    "/data/machine_vision/apppic/sharesend.png"   //
+#define TIKTOK_CONTENT_SPEICYTALK_2_CV    "/data/machine_vision/apppic/speicymuilty_2.png"   //.png
+#define TIKTOK_CONTENT_SEARCHPAGE_CV    "/data/machine_vision/apppic/searchpage.png"   //.png
 
 // 类声明
 class APP_TIKTOK {
@@ -122,6 +134,9 @@ public:
 
 
 
+    void ContentComment();
+
+    void ContentForward();
 private:
     // 线程执行的内容
     void run();
@@ -138,17 +153,16 @@ private:
     void beatBack(int cnt);
     void randomCickScreen();//直播间点赞
     int SearchPersonZone(string Name);//进入搜索内容展示
-    int SendComment(string comments);//发送评论
-    int VideoContentLike(string name,string message);//作品点赞  在用户个人主页内 未完成
-    void VideoContentOPT(CONTENT_OPT operat);//作品点赞  在用户个人主页内 未完成
-    bool VideoContentForward();
+
     int SendMessageToPerson(string name, string message);//发送私信
     bool isLivingRoom();
     int EntranceLivingRoom(string name);//进入指定直播间
     int SendBraggerForLivingRoom(string message, bool noEdit);//发送弹幕僚
     int FollowSpecifiedUser(string name);//关注指定人
-    void RandomFollowUser();//随机关注路人 （在胡粉直播间）
+    int RandomFollowUser();//随机关注路人 （在胡粉直播间）
     bool LaunchToHomepage();
+    void RandomShortVideoOperation(ad_point click, CONTENT_OPT opt);
+
 };
 
 #endif // APP_TIKTOK_H

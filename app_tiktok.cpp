@@ -178,7 +178,7 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
     {
         if(!isEnter)
         {
-            ret = EntranceLivingRoom("互涨1000粉");//进入指定直播间
+            ret = EntranceLivingRoom("交朋友直播间");//进入指定直播间
             if(ret == -1)
             {
                 cout << "无法进入直播间\n"<< endl;
@@ -197,7 +197,7 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
                 turnon_application(APP_TIKTOK_ENUM);
 
                 int i=0;
-                for (i = 0; i < 5; ++i)
+                for (i = 0; i < 15; ++i)
                 {
                     cout << "检查直播间三要素 >>>......\n" << endl;
 
@@ -210,6 +210,7 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
                 if(i >=4)
                 {
                     isEnter =false;
+                    beatBack(5);
                     continue;
                 }
                 isEnter =true;
@@ -218,18 +219,40 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
         }
 
 
+        if(sec %10 == 0)
+        {
+#if 1
+            for (int i = 0; i < 5; ++i) {
+                cout << "检查直播间三要素 >>>......\n" << endl;
 
+                if( isLivingRoom())
+                {
+                    cout << "确认完毕 >>>......\n" << endl;
+                    break;
+                }
+                else
+                {
+                    cout << "未能确认 返回......\n" << endl;
+                    return ;
+                }
+            }
+#endif
+        }
 
 
 
         for (int var = 0; var < 1; ++var) {
-            RandomFollowUser();
+            if(RandomFollowUser() == -2)
+            {
+                isEnter =false;
+            }
         }
         SHORT_DELAY;
         ret = SendBraggerForLivingRoom(FollowText,true);
         if ( ret== -2)
         {
             isEnter =false;
+            beatBack(5);
         }
         SHORT_DELAY;
         //   randomCickScreen();
@@ -259,6 +282,10 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
             finalscore =score;
             return false;
         }
+    }
+    if(isnan(score))
+    {
+        return false;
     }
     cout << "score:" << score << "match: "<< match.x << "," <<match.y<<"\n" <<endl;
     like.x =  match.x+13+973;
@@ -291,7 +318,7 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
         // 计算时间差，单位为毫秒
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         //   std::cout << "五秒钟后上滑视频" << duration.count() << " milliseconds" << std::endl;
-        if(duration.count() >6000)
+        if(duration.count() >6000 && 0)
         {
             // 输出时间差
             std::cout << "6秒钟后上滑视频" << duration.count() << " milliseconds" << std::endl;
@@ -301,13 +328,47 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
         }
         if(SearchShortVelement(like,comment,farvour,forward,score))
         {
-            cout <<"该内容可以被点赞   给予点赞\n" << endl;
-            INPUT_TAP(like);
-            std::this_thread::sleep_for(std::chrono::seconds(3));
-            /*    scrollingUP();
-            auto start = std::chrono::high_resolution_clock::now();*/
+            cout <<"图像对比 通过\n" << endl;
+            // 生成1到16之间的随机数
+            srand(time(0));
+            int randomNum = rand() % 16 + 1;
+            cout <<"操作种子:"<< randomNum <<"\n" << endl;
+
+                if(randomNum & 0x01)
+                {
+                cout <<"给予点赞\n" << endl;
+                    RandomShortVideoOperation(like,GIVELIKE_OPT);
+                }
+                usleep(500*1000);
+                if(randomNum>>1 & 0x01)
+                {
+                    cout <<"给予评论\n" << endl;
+
+                    RandomShortVideoOperation(comment,COMMENT_OPT);
+                //    beatBack(5);
+                }
+                usleep(500*1000);
+
+                if(randomNum>>2 & 0x01)
+                {
+                    cout <<"给予收藏\n" << endl;
+
+                    RandomShortVideoOperation(farvour,FAVOURITE_OPT);
+                }
+                usleep(500*1000);
+
+                if(randomNum>>3 & 0x01)
+                {
+                    cout <<"给予转发\n" << endl;
+
+                    RandomShortVideoOperation(forward,FORWARD_OPT);
+                 //   beatBack(5);
+                }
+                usleep(500*1000);
+                scrollingUP();
+
         }
-        else if( score < 0.3)
+        else
         {
             snap_screen();
             cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
@@ -334,49 +395,244 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
                     scrollingUP();
                 }else
                 {
-                    cout <<"未知内容...\n" << endl;
-                    lowScoreCnt++;
+                    cout <<"未知内容..点击1下back.\n" << endl;
+                    //lowScoreCnt++;
+                    INPUT_BACK();
                 }
             }
         }
 
     }
-
-    //cv::imwrite("simple.jpg", simple);
-
-    // cv::Mat maskPic = cv::imread("/data/machine_vision/apppic/shortvideo_ele.png", cv::IMREAD_GRAYSCALE);  // 读取目标图像
-    // cv::Mat masked = Maskpicture(simple,maskPic);
-
-    // cv::imwrite("masked.jpg", masked);
-
     cout << "endend \n" <<endl;
 
-    /*cv::Mat templateImage = cv::imread("/data/machine_vision/apppic/shortvideo_ele.png"); // 读取模板图像
-    cv::Mat Maskmage = cv::imread("/data/machine_vision/apppic/shortvideo_ele_grey.png"); // 读取模板图像
-
+}
+void APP_TIKTOK::ContentForward()
+{
     double score;
-    ad_point match = FindPicTargetWithMask(targetImage, templateImage,templateImage, score);
-    cout << "score:" << score << "match : " << match.x << " ," <<match.y <<"  \n" <<endl;*/
-
-
-
-    /*
-    if(contentType == LIVE_STREAMING)
+    ad_point match={0};
+    match = FindTargetForDelay(TIKTOK_CONTENT_SHARE_CV,score,15);
+    if(match.x == -1 || match.y == -1)
     {
-        scrollingUP();
+        cout << "找不到分享界面...\n" <<endl;
+    }
+
+    cout << "分享界面已经找到 准备寻找群聊...\n" <<endl;
+
+
+    match = FindTargetForDelay(TIKTOK_CONTENT_SPEICYTALK_2_CV,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "找不到指定群聊...\n" <<endl;
     }
     else
     {
-        sleep(2);
-        VideoContentOPT(GIVELIKE_OPT);
-        sleep(2);
-        VideoContentOPT(FAVOURITE_OPT);
-        sleep(2);
-    }*/
+        cout << "点击程序员交流群\n"<< endl;
+        INPUT_TAP(match);
+        match = FindTargetForDelay(TIKTOK_CONTENT_SHARESEND_CV,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "找不到发送按钮...\n" <<endl;
+        }
+        INPUT_TAP(match);
+
+        cout << "点击发送\n"<< endl;
+        SHORT_DELAY;
+        return;
+    }
+
+    match.y+= 100;
+
+    ad_point swipe_end ={match.x-200,match.y};
+    ad_point swipe_start =match;
+
+    for (int var = 0; var < 10; ++var)
+    {
+        INPUT_SWIPE(swipe_start,swipe_end,750);
+        match = FindTargetForDelay(TIKTOK_CONTENT_SHAREMORE_CV,score,1);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "继续寻找更多...\n" <<endl;
+            cout << "滑动坐标"<<swipe_start.x << ", " <<swipe_start.y<<" ...\n" <<endl;
+            cout << "滑动坐标"<<swipe_end.x << ", " <<swipe_end.y<<" ...\n" <<endl;
+
+        }
+        else
+        {
+            break;
+        }
+    }
+    SHORT_DELAY;
+    cout << "目标已找到:"<<match.x << ":"<< match.y<<"...\n" <<endl;
+    INPUT_TAP(match);
+
+    match = FindTargetForDelay(TIKTOK_CONTENT_MUILTYTALK_CV,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "找不到群聊界面...\n" <<endl;
+        return;
+    }
+    cout << "点击群聊分享\n"<< endl;
+    INPUT_TAP(match);
+
+    match = FindTargetForDelay(TIKTOK_CONTENT_SPEICYTALK_CV,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "找不到指定群聊...\n" <<endl;
+    }
+    cout << "点击程序员交流群\n"<< endl;
+    INPUT_TAP(match);
+
+    match = FindTargetForDelay(TIKTOK_CONTENT_SHARESEND_CV,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "找不到发送按钮...\n" <<endl;
+    }
+    INPUT_TAP(match);
+
+    cout << "点击发送\n"<< endl;
+    SHORT_DELAY;
 }
+void APP_TIKTOK::ContentComment()
+{
+    for (int var = 0; var < 5*3; ++var)
+    {
+        ad_point match = FindTargetReturnPoint("/data/machine_vision/apppic/commentAear.png");
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            cout << "寻找编辑栏目\n" << endl;
+        }
+        else
+        {
+            cout << "点击编辑栏目\n" << endl;
+            match.x-=300;
+            INPUT_TAP(match);
+            break;
+        }
+    }
+
+    for (int var = 0; var < 5*3; ++var)
+    {
+        ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_KEYBOARD_UI_CV);
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            cout << "寻找键盘\n" << endl;
+        }
+        else
+        {
+            cout << "键盘已经弹出\n" << endl;
+            break;
+        }
+    }
+   // CopyTextFormSys("支持！！！！🦸");
+   // turnon_application(APP_TIKTOK_ENUM);
+    for (int var = 0; var < 5*3; ++var)
+    {
+        ad_point match = FindTargetReturnPoint("/data/machine_vision/apppic/pressSend_2.png");
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            cout << "寻找输入区...1\n" << endl;
+            ad_point match = FindTargetReturnPoint("/data/machine_vision/apppic/pressSend.png");
+            usleep(200*1000);
+            if(match.x ==-1 || match.y ==-1)
+            {
+                cout << "寻找输入区...2\n" << endl;
+            }
+            else
+            {
+                cout << "输入找到了\n" << endl;
+
+                match.y -= 30;
+             //   match.x -= 300;
+
+                INPUT_TAP_DELAY(match,1000);
+
+                break;
+            }
+        }
+        else
+        {
+
+            match.y -= 40;
+         //  match.x -= 300;
+            cout << "输入找到了,调出粘贴按钮\n"  <<"x:"<< match.x << " y: " <<match.y<< endl;
+
+            INPUT_TAP_DELAY(match,1000);
+
+            break;
+        }
+    }
+    for (int var = 0; var < 5*3; ++var)
+    {
+        ad_point match = FindTargetReturnPoint(TEXTPASTE_PATH);
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            cout << "等待粘贴\n" << endl;
+        }
+        else
+        {
+            cout << "点击粘贴\n" << endl;
+            INPUT_TAP(match);
+            break;
+        }
+    }
+
+    for (int var = 0; var < 5*3; ++var)
+    {
+        ad_point match = FindTargetReturnPoint("/data/machine_vision/apppic/pressSend_2.png");
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            cout << "准备点击发送\n" << endl;
+            ad_point match = FindTargetReturnPoint("/data/machine_vision/apppic/pressSend.png");
+            usleep(200*1000);
+            if(match.x !=-1 && match.y !=-1)
+            {
+                cout << "消息已经发送\n" << endl;
+                INPUT_TAP(match);
+                break;            }
+        }
+        else
+        {
+            cout << "消息已经发送\n" << endl;
+            INPUT_TAP(match);
+            break;
+        }
+    }
+}
+
+void APP_TIKTOK::RandomShortVideoOperation(ad_point click,CONTENT_OPT opt)
+{
+    if(opt == GIVELIKE_OPT)
+    {
+        INPUT_TAP(click);
+    }
+    else if(opt == COMMENT_OPT)
+    {
+        INPUT_TAP(click);
+
+        ContentComment();
+        beatBack(1);
+    }
+    else if(opt == FAVOURITE_OPT)
+    {
+        INPUT_TAP(click);
+    }
+    else if(opt == FORWARD_OPT)
+    {
+        INPUT_TAP(click);
+        ContentForward();
+
+    }
+}
+
 
 int APP_TIKTOK::SearchPersonZone(string Name)
 {
+#if 1
     if(CopyTextFormSys(Name) <0 )
     {
         cout << "error : 无法复制文本!\n";
@@ -384,153 +640,78 @@ int APP_TIKTOK::SearchPersonZone(string Name)
     }
 
     turnon_application(APP_TIKTOK_ENUM);
+#endif
+
     LONG_DELAY;
-    LONG_DELAY;
+    double score;
+    ad_point match={0};
     ad_point clickP = TIKTOK_OPT_SEARCH;
-    INPUT_TAP(clickP);
-    LONG_DELAY;
-
-
-    clickP = TIKTOK_OPT_TEXT_INPUT;
-    INPUT_TAP_DELAY(clickP,1000);
-    LONG_DELAY;
-
-    //粘贴
-    int ret = FindTargetClick(TEXTPASTE_PATH, false);
-    if(ret < 0)
+    ad_point searchClick = {0};
+    int var =0;
+    for ( var = 0; var < 5; ++var)
     {
-        cout << "warning :" << TEXTPASTE_PATH << "   NOT FOUND !" << endl;
+        INPUT_TAP(clickP);
+        match = FindTargetForDelay(TIKTOK_CONTENT_SEARCHPAGE_CV,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "没有打开搜索页面...\n" <<endl;
+            continue;
+        }
+        else
+        {
+            cout << "搜索页面打开成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            searchClick = match;
+            searchClick.x +=20;
+            break;
+        }
+    }
+    if(var>=5)
+    {
+        cout << "搜索页面打开失败...\n" <<endl;
         return -1;
     }
-    LONG_DELAY;
+    match.x -= 100;
+    clickP= match;
+//    INPUT_TAP(match);
+    cout << "点击编辑栏目准备粘贴...\n" <<endl;
 
-    clickP = TIKTOK_OPT_CONTINUE_SEARCH;
-    INPUT_TAP_DELAY(clickP,1000);
+    for ( var = 0; var < 5; ++var)
+    {
+        INPUT_TAP_DELAY(clickP,750);
+        match = FindTargetForDelay(TEXTPASTE_PATH,score,5);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "没有找到粘贴页面...\n" <<endl;
+            continue;
+        }
+        else
+        {
+            cout << "粘贴位置找到.." <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+            break;
+        }
+    }
+    if(var>=5)
+    {
+        cout << "找不到粘贴的位置...\n" <<endl;
+        return -1;
+    }
 
-    LONG_DELAY;
+    INPUT_TAP(searchClick);
 
-
-
-    /* clickP = TIKTOK_OPT_FIRST_ELEMENT;
-    INPUT_TAP_DELAY(clickP,1000);
-
-    LONG_DELAY;*/
+    /*match = FindTargetForDelay(TIKTOK_CONTENT_SEARCHPAGE_CV,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "没有搜索按钮...\n" <<endl;
+        return -1;
+    }
+    else
+    {
+        cout << "搜索按钮找到.." <<match.x<<"," <<match.y<<".\n" <<endl;
+        match.x+=20;
+        INPUT_TAP(match);
+    }*/
     return 0;
-}
-
-int APP_TIKTOK::SendComment(string comments)
-{
-    // if(contentType != SHORT_VIDEO)
-    // {
-    //     cout << "error : not short video connot comment !\n";
-    //     return -1;
-    // }
-
-    if(CopyTextFormSys("text:杭州今天下小雨azxcxz!@##!@112233") <0 )
-    {
-        cout << "error : 无法复制文本!\n";
-        return -1;
-    }
-
-    turnon_application(APP_TIKTOK_ENUM);
-
-    ad_point clickP = TIKTOK_OPT_COMMENTS;
-
-
-    INPUT_TAP(clickP);
-    LONG_DELAY;
-
-    //打开评论区
-    int ret = FindTargetClick(TIKTOK_COMMENTS_CV, false);
-    if(ret < 0)
-    {
-        cout << "warning :" << TIKTOK_COMMENTS_CV << "   NOT FOUND !" << endl;
-        return -1;
-    }
-    LONG_DELAY;
-
-    //长点击准备复制
-
-    ret = FindTargetClick(TIKTOK_COMMENTS_CV, true);
-    if(ret < 0)
-    {
-        cout << "warning :" << TIKTOK_COMMENTS_CV << "   NOT FOUND !" << endl;
-        return -1;
-    }
-    LONG_DELAY;
-    //点击粘贴
-    ret = FindTargetClick(TEXTPASTE_PATH, false);
-    if(ret < 0)
-    {
-        cout << "warning :" << TEXTPASTE_PATH << "   NOT FOUND !" << endl;
-        return -1;
-    }
-
-    //点击发送
-    ret = FindTargetClick(TIKTOK_PRESSSEND_CV, false);
-    if(ret < 0)
-    {
-        cout << "warning :" << TIKTOK_PRESSSEND_CV << "   NOT FOUND !" << endl;
-        return -1;
-    }
-    cout << "process has done\n";
-    return 0;
-}
-/*  clickStart = {512,500};
-    clickEnd = {512,200};
-
-    INPUT_SWIPE(clickStart,clickEnd,500);  //上划
-    SHORT_DELAY;*/
-int APP_TIKTOK::VideoContentLike(string name,string message)
-{
-    SearchPersonZone(name);
-
-    //点击用户按钮
-    int ret = FindTargetClick(TIKTOK_SEARCH_USER_CV, false);
-    if(ret < 0)
-    {
-        cout << "warning :" << TIKTOK_SEARCH_USER_CV << "   NOT FOUND !" << endl;
-        return -1;
-    }
-    LONG_DELAY;
-
-    TAP_SWIPE_DOWN() ;
-    SHORT_DELAY;
-    TAP_SWIPE_UP() ;
-    SHORT_DELAY;
-
-    ad_point match = FindTargetReturnPoint(TIKTOK_MAKEING_CV);//todo
-    //TODO 找到作品的按钮
-    return 0;
-
-}
-
-void APP_TIKTOK::VideoContentOPT(CONTENT_OPT operat)
-{
-    ad_point clickP ={0,0};
-
-
-    switch (operat) {
-    case GIVELIKE_OPT:
-    {clickP=TIKTOK_OPT_LIKES;INPUT_TAP(clickP);}
-    break;
-    case COMMENT_OPT:
-
-        break;
-    case FAVOURITE_OPT:
-    {clickP=TIKTOK_OPT_FARVOUR;INPUT_TAP(clickP);}
-    break;
-    case FORWARD_OPT:
-
-        break;
-    default:
-        break;
-    }
-}
-
-bool APP_TIKTOK::VideoContentForward()
-{
-    return false;
 }
 
 void APP_TIKTOK::randomCickScreen()
@@ -552,80 +733,67 @@ void APP_TIKTOK::randomCickScreen()
 int APP_TIKTOK::EntranceLivingRoom(string name)
 {
     SearchPersonZone(name);
-#if 1
-    //点击直播按钮
-    int ret = FindTargetClick(TIKTOK_SEARCH_LIVING_CV, false);
-    if(ret < 0)
+
+    double score;
+    ad_point match={0};
+    ad_point clickP = TIKTOK_OPT_SEARCH;
+    ad_point searchClick = {0};
+    int var =0;
+    for ( var = 0; var < 5; ++var)
     {
-        cout << "warning :" << TIKTOK_SEARCH_LIVING_CV << "   NOT FOUND !" << endl;
-        return -1;
-    }
-    LONG_DELAY;
-#else
-    //点击用户按钮
-    int ret = FindTargetClick(TIKTOK_SEARCH_USER_CV, false);
-    if(ret < 0)
-    {
-        cout << "warning :" << TIKTOK_SEARCH_USER_CV << "   NOT FOUND !" << endl;
-        return -1;
-    }
-    LONG_DELAY;
-#endif
-    ad_point match;
-    ad_point clickP;
-    for (int var = 0; var < 3; ++var) {
-        match = FindTargetReturnPoint(TIKTOK_LIVING_UI_CV);//todo
-        if(match.x== -1 || match.y== -1)
+       // INPUT_TAP(clickP);
+        match = FindTargetForDelay(TIKTOK_SEARCH_LIVING_CV,score,15);
+        if(match.x == -1 || match.y == -1)
         {
-
-            match = FindTargetReturnPoint(TIKTOK_LIVING_UI_2_CV);//todo
-            if(match.x== -1 || match.y== -1)
-            {
-                cout << "找不到直播间入口" <<endl;
-
-                if(var>=2)
-                    return -1;
-                else
-                {
-                    cout << "继续搜索" <<endl;
-
-                    clickP = TIKTOK_OPT_CONTINUE_SEARCH;
-                    INPUT_TAP_DELAY(clickP,1000);
-                    continue;
-                }
-            }
-
-        }
-    }
-    LONG_DELAY;
-    clickP = match;
-    INPUT_TAP(clickP);
-    SHORT_DELAY;
-
-    // ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_ROOM_CV);//todo
-    // cout << "Is living room ： " <<isLivingRoom() << "\n " << endl;
-
-    return 0;
-}
-void APP_TIKTOK::RandomFollowUser()
-{
-#if 1
-    for (int i = 0; i < 5; ++i) {
-        cout << "检查直播间三要素 >>>......\n" << endl;
-
-        if( isLivingRoom())
-        {
-            cout << "确认完毕 >>>......\n" << endl;
-            break;
+            cout << "没有找到直播按钮...\n" <<endl;
+            continue;
         }
         else
         {
-            cout << "未能确认 返回......\n" << endl;
-            return ;
+            cout << "点击直播按钮.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+            break;
         }
-        //   LONG_DELAY;
     }
-#endif
+    if(var>=5)
+    {
+        cout << "搜索页面打开失败...\n" <<endl;
+        return -1;
+    }
+
+    for ( var = 0; var < 5; ++var)
+    {
+      //  INPUT_TAP(clickP);
+        match = FindTargetForDelay(TIKTOK_LIVING_UI_CV,score,3);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "没有找到直播间...\n" <<endl;
+            match = FindTargetForDelay(TIKTOK_LIVING_UI_2_CV,score,3);
+            if(match.x == -1 || match.y == -1)
+            {
+                INPUT_TAP(clickP);
+                cout << "点击搜索后重试一次..\n" <<endl;
+
+                continue;
+            }
+
+        }
+            cout << "进入直播间.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+            SHORT_DELAY;
+            break;
+    }
+    if(var>=5)
+    {
+        cout << "无法进入直播间...\n" <<endl;
+        return -1;
+    }
+
+    return 0;
+}
+int APP_TIKTOK::RandomFollowUser()
+{
+
 
     ad_point clickP = {56,464};
     INPUT_TAP(clickP);
@@ -641,22 +809,28 @@ void APP_TIKTOK::RandomFollowUser()
             if(match.x>0&& match.y>0)
             {
                 cout << "该用户已经关注\n"<<endl;
-                ad_point clickP = {56,464};
+                clickP = {56,464};
                 INPUT_TAP(clickP);
                 SHORT_DELAY;
-                break;
+                return -1;
             }
             else if(var >=2)
             {
                 cout << "一直未发现关注按钮\n" <<endl;
-                return;
+                return -1;
             }
             else
             {
-                // cout << "继续点击一次\n" <<endl;
-                // ad_point clickP = {56,464};
-                // INPUT_TAP(clickP);
-                // LONG_DELAY;
+
+                match = FindTargetReturnPoint(TIKTOK_LIVING_FOLLOWED_2_UI_CV);//todo
+                if(match.x>0&& match.y>0)
+                {
+                    cout << "该用户已经关注\n"<<endl;
+                    clickP = {56,464};
+                    INPUT_TAP(clickP);
+                    SHORT_DELAY;
+                    return -1;
+                }
             }
             continue;
         }
@@ -665,14 +839,39 @@ void APP_TIKTOK::RandomFollowUser()
             clickP = match;
             INPUT_TAP(clickP);
             cout << "已经随机一名用户\n" << endl;
-            LONG_DELAY;
-            ad_point clickP = {56,464};
-            INPUT_TAP(clickP);
-            SHORT_DELAY;
+            sleep(1);
+            cout << "等待关注结果\n" <<endl;
+            for(int var =0 ;var <5 ;var ++)
+            {
+                ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_FOLLOWED_UI_CV);//
+                if(match.x== -1 || match.y== -1)
+                {
+                    cout << "未发现关注成功  继续点击关注\n" <<endl;
+                    if(var >=4)
+                    {
+                        cout << "无法关注  可能已达每日上限\n" <<endl;
+                        clickP = {56,464};
+                        INPUT_TAP(clickP);
+                        return -2;
+                    }
+                    else
+                    {
+                    INPUT_TAP(clickP);
+                    }
+                }
+                else
+                {
+                    cout << "关注成功\n" <<endl;
+                    LONG_DELAY;
+                    clickP = {56,464};
+                    INPUT_TAP(clickP);
+                    break;
+                }
+            }
             break;
         }
     }
-
+    return 0 ;
 }
 
 int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
@@ -686,48 +885,29 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
         }
         turnon_application(APP_TIKTOK_ENUM);
     }
-#if 0
-    for (int i = 0; i < 5; ++i) {
-        cout << "检查直播间三要素 >>>......\n" << endl;
+    ad_point clickP =TIKTOK_OPT_BARRAGE_BUTTON;
+    ad_point sendMsg  ;
+    ad_point match;
+    double score;
+    int var=0;
+    clickP = TIKTOK_OPT_BARRAGE_BUTTON;
+    INPUT_TAP(clickP);
+    for( var = 0; var < 5; ++var)
+    {
 
-        if( isLivingRoom())
+        match = FindTargetForDelay(TIKTOK_LIVING_KEYBOARD_UI_CV,score,5);
+        if(match.x == -1 || match.y == -1)
         {
-            cout << "确认完毕 >>>......\n" << endl;
-            break;
+            cout << "等待键盘弹出...\n" <<endl;
+
+            clickP = TIKTOK_OPT_BARRAGE_BUTTON;
+            INPUT_TAP(clickP);
+
+            continue;
         }
         else
         {
-          return -2;
-        }
-     //   LONG_DELAY;
-    }
-#endif
-    ad_point clickP ;
-    ad_point match;
-    int var=0;
-    for( var = 0; var < 5; ++var)
-    {
-        clickP = TIKTOK_OPT_BARRAGE_BUTTON;
-        INPUT_TAP(clickP);
-        usleep(1200*1000);
-        int a=0;
-        for(a = 0; a < 5; ++a)
-        {
-            match = FindTargetReturnPoint(TIKTOK_LIVING_KEYBOARD_UI_CV);//todo
-            if(match.x== -1 || match.y== -1)
-            {
-                cout << "等待键盘弹出" <<endl;
-
-                continue;
-            }
-            else
-            {
-                cout << "键盘已经弹出" <<endl;
-                break;
-            }
-        }
-        if(a<5)
-        {
+            cout << "键盘弹出成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
             break;
         }
     }
@@ -737,77 +917,44 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
 
         return -1;
     }
-
-    for ( var = 0; var < 5; ++var) {
-        match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
-        if(match.x== -1 || match.y== -1)
+    for( var = 0; var < 5; ++var)
+    {
+        match = FindTargetForDelay(TIKTOK_PRESSSEND_LIVINGROOM_CV,score,5);
+        if(match.x == -1 || match.y == -1)
         {
-            cout << "warining : cannot locate editor" <<endl;
-            sleep(1);
-
+            cout << "点击编辑栏目...\n" <<endl;
             continue;
         }
         else
-            break;
-
-    }
-    if(var>4)
-    {
-        cout << "编辑失败\n" <<endl;
-
-        return -1;
-    }
-
-    for ( var = 0; var < 5; ++var)
-    {
-
-
-        SHORT_DELAY;
-        match.x -= 250;
-        clickP = match;
-        INPUT_TAP(clickP);//点击编辑栏目
-        SHORT_DELAY;
-        INPUT_TAP_DELAY(clickP,500);//长按编辑栏目
-        SHORT_DELAY;
-        match = FindTargetReturnPoint(TIKTOK_LIVINGROOM_BRAGGER_PASTE_CV);//todo
-        if(match.x== -1 || match.y== -1)
         {
-            cout << "warining : cannot paste at living room " <<endl;
-            // cout << "warining : cannot paste at living room " <<endl;
-            // cout << "warining : cannot paste at living room " <<endl;//TODO
-            // cout << "warining : cannot paste at living room " <<endl;
-            // cout << "warining : cannot paste at living room " <<endl;
-            // sleep(3);
-            match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
-            continue ;
+            cout << "已经点击.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP_DELAY(match,750);
+            clickP = match ;
+            sendMsg =match;
+            sendMsg.x += 110;
+            break;
+        }
+    }
+
+    for( var = 0; var < 5; ++var)
+    {
+        match = FindTargetForDelay(TIKTOK_LIVINGROOM_BRAGGER_PASTE_CV,score,5);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法定位粘贴\n" <<endl;
+            INPUT_TAP_DELAY(clickP,750);
+            continue;
         }
         else
         {
-            cout << "准备点击粘贴按钮\n"<<endl;
+            cout << "已经点击粘贴.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
             break;
         }
     }
-    if(var>4)
-    {
-        cout << "粘贴失败\n" <<endl;
-        return -1;
-    }
-    clickP = match;
-    INPUT_TAP(clickP);
 
-    match = FindTargetReturnPoint(TIKTOK_PRESSSEND_CV);//todo
-    if(match.x== -1 || match.y== -1)
-    {
-        cout << "warining : cannot locate editor" <<endl;
-        return -1;
-    }
-    // LONG_DELAY;
-    clickP = match;
-    INPUT_TAP(clickP);
-    //LONG_DELAY;
 
-    //cout << "waitting send commder ....\n" <<endl;
-
+    INPUT_TAP(sendMsg);
     return 0;
 }
 
@@ -977,13 +1124,8 @@ bool APP_TIKTOK::LaunchToHomepage()
 
 void APP_TIKTOK::run()
 {
-    // 线程执行的内容
-    string mesg ="";string str1, str2;
-    // 计算 FollowMode 的执行时间
-    auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    str1 = "FollowMode执行时间: " + std::to_string(duration.count()) + " 毫秒";
+    LONG_DELAY;
+    string msg;
     while (1)
     {
         if(!running)
@@ -998,33 +1140,21 @@ void APP_TIKTOK::run()
                 continue;
             }
         }
+        msg = "开始胡粉 现在的温度是:" + readTemperature();
+        SendMessageToPerson("神田川",msg);
+        beatBack(5);
+        FollowMode("一起努力🪅🪅🪅🪅有官必洄   一起努力🪅🪅🪅🪅有官必洄",100);
 
-#if 1
-        // 计算 FollowMode 的执行时间
-         start = std::chrono::high_resolution_clock::now();
-        FollowMode("关必回🪅🪅🪅🪅🪅关必回🪅🪅🪅🪅🪅", 100);
-         end = std::chrono::high_resolution_clock::now();
-         duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        str1 = "FollowMode执行时间: " + std::to_string(duration.count()) + " 毫秒";
+        msg = "开始刷视频 现在的温度是:" + readTemperature();
+        SendMessageToPerson("神田川",msg);
+        beatBack(5);
+        ScrollingShortVideos(500);
+        msg = "休息一小时 现在的温度是:" + readTemperature();
 
-        // 执行 beatBack 和读取温度
-        beatBack(6);
-        mesg = readTemperature() + " " + str1;
-        SendMessageToPerson("147003193", mesg);
-
-        // 计算 ScrollingShortVideos 的执行时间
-        start = std::chrono::high_resolution_clock::now();
-        ScrollingShortVideos(50);
-        end = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        str2 = "ScrollingShortVideos执行时间: " + std::to_string(duration.count()) + " 毫秒";
-#endif
-        // 执行 beatBack 和读取温度
-        beatBack(6);
-        mesg = readTemperature() + " " + str2;
-        SendMessageToPerson("147003193", mesg);
-
-
+        INPUT_HOME();
+        for (int var = 0; var < 3600; ++var) {
+            sleep(1);
+        }
     }
 
 }

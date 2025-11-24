@@ -14,6 +14,8 @@
 // 宏定义文件路径
 #define FILESYSTEM_PATH            "/data/machine_vision/apppic/filesystem.png"
 #define PIPETXT_PATH               "/data/machine_vision/apppic/pipetxt.png"
+#define PIPETXT_LOCATE_PATH               "/data/machine_vision/apppic/pipefile.png"
+
 #define TEXTCONTENT_PATH           "/data/machine_vision/apppic/textcontent.png"
 #define ALLSELECT_PATH             "/data/machine_vision/apppic/allselect.png"
 #define TIKTOK_PATH                "/data/machine_vision/apppic/tiktok.png"
@@ -45,4 +47,5 @@ int CopyTextFormSys(string texture);
 int FindTargetClick(string targetPng, bool clickdelay); //clickdelay=1 重点击  否则轻量点击
 ad_point FindTargetReturnPoint(string targetPng);//返回目标位置
 int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) ;
+ad_point FindTargetForDelay(string targetPng,double &score,int clycles);
 #endif // 结束 #ifndef

@@ -73,10 +73,10 @@ void TURN_ON_TIKTOK(void)
     // TODO: 填充启动 TikTok 的逻辑
     std::cout << "Launching TikTok..." << std::endl;
     INPUT_HOME();
-    SHORT_DELAY;
+   /* SHORT_DELAY;
     OPEN_FILE_MANAGER() ;
     SHORT_DELAY;
-
+*/
     snap_screen();//重新生成一张背景图片
     FindTargetClick(TIKTOK_PATH,false);
 }
@@ -203,6 +203,30 @@ std::string readTemperature() {
     double celsiusTemp = temp / 1000.0;
     return "当前设备温度: " + std::to_string(celsiusTemp) + " °C";
 }
+ad_point FindTargetForDelay(string targetPng,double &score,int clycles)
+{
+    for (int var = 0; var < clycles; ++var)
+    {
+        ad_point match = FindTargetReturnPoint(targetPng);
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            //cout << "...\n" << endl;
+        }
+        else
+        {
+            // cout << "目标已找到 得分: " <<score << "\n" << endl;
+            // cout << "坐标"<<match.x << ", " <<match.y<<" ...\n" <<endl;
+
+            return match;
+        }
+    }
+    cout << "警告:长时间未找到亩目标 已经退出...\n" << endl;
+
+    return {-1,-1};
+}
+
+
 ad_point FindTargetReturnPoint(string targetPng)
 {
     snap_screen();//重新生成一张背景图片
@@ -246,8 +270,8 @@ ad_point FindTargetReturnPoint(string targetPng)
         cout << "score :" <<score<< "wait times : " << i+1 <<"\n";
 
         // 如果匹配的分数小于0.8，返回-1
-        if (score < 0.7 ) {
-#if 0
+        if (score < 0.8 ) {
+#if 1
                 // 在目标图像中用红色框标记匹配区域
                 cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
                 cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
@@ -273,9 +297,10 @@ ad_point FindTargetReturnPoint(string targetPng)
         }
        // sleep(1);//
     }
-#if 1
+
     // 在目标图像中用红色框标记匹配区域
     cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
+#if 0
     cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
 
     // 用红色框住匹配区域
@@ -370,97 +395,111 @@ int CopyTextFormSys(string texture)
 {
     INPUT_TYPEINGTEXT(texture);
     INPUT_HOME();
-    SHORT_DELAY;
-    OPEN_FILE_MANAGER();
-    SHORT_DELAY;
-    ScreenTapDownToUp();
-    SHORT_DELAY;
-    //打开文件
-    int ret = FindTargetClick(FILESYSTEM_PATH, false);
-    if(ret < 0)
+    ad_point clickP ;
+    ad_point sendMsg  ;
+    ad_point match;
+    double score;
+    int var=0;
+
+    match = FindTargetForDelay(FILESYSTEM_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
     {
-        cout << "warning :" << FILESYSTEM_PATH << "   NOT FOUND !" << endl;
+        cout << "无法打开文件系统...\n" <<endl;
         return -1;
     }
-    SHORT_DELAY;
-
-    LONG_DELAY;
-    //打开pipe文档
-    ret = FindTargetClick(PIPETXT_PATH, false);
-    if(ret < 0)
+    else
     {
-        cout << "warning :" << PIPETXT_PATH << "   NOT FOUND !" << endl;
-        return -1;
-    }
-#if 0
-    LONG_DELAY;
-
-    //点击文本内容
-    ret = FindTargetClick(TEXTCONTENT_PATH, true);
-    if(ret < 0)
-    {
-        cout << "warning :" << TEXTCONTENT_PATH << "   NOT FOUND !" << endl;
-        return -1;
-    }
-#endif
-    LONG_DELAY;
-    ad_point clickP;
-    for (int var = 0; var < 3; ++var) {
-        clickP = TEXTURE_CLICK;
-        INPUT_TAP_DELAY(clickP,1000);
-        cout << "press down \n " << endl;
-        SHORT_DELAY;
-        //点击全选
-        ret = FindTargetClick(ALLSELECT_PATH, false);
-        if(ret < 0)
-        {
-
-            if(var ==2)
-            {
-                cout << "warning :" << ALLSELECT_PATH << "   NOT FOUND ! AND RETURN " <<var<< endl;
-                return -1 ;
-            }
-            cout << "warning :" << ALLSELECT_PATH << "   NOT FOUND !" <<var<< endl;
-            continue;
-        }
-
-        break;
-        SHORT_DELAY;
-
+        cout << "打开文件系统成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP(match);
     }
 
-    //点击复制
-    ret = FindTargetClick(TEXTCOPY_PATH, false);
-    if(ret < 0)
+    match = FindTargetForDelay(PIPETXT_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
     {
-        cout << "warning :" << TEXTCOPY_PATH << "   NOT FOUND !" << endl;
+        cout << "无法打开管道文件系统...\n" <<endl;
         return -1;
+    }
+    else
+    {
+        cout << "打开管道文件成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP(match);
+    }//TEXTURE_CLICK ALLSELECT_PATH
+
+    match = FindTargetForDelay(PIPETXT_LOCATE_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "无法定位管道文件系统...\n" <<endl;
+        return -1;
+    }
+    else
+    {
+        cout << "定位成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        match.x -= 100;
+        match.y += 30;
+        clickP = match;
+        INPUT_TAP_DELAY(clickP,750);
+    }//TEXTURE_CLICK
+
+    match = FindTargetForDelay(ALLSELECT_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "无法复制...\n" <<endl;
+        return -1;
+    }
+    else
+    {
+        cout << "复制文本成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP(match);
+    }
+    INPUT_TAP_DELAY(clickP,750);
+
+    match = FindTargetForDelay(TEXTCOPY_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "无法复制...\n" <<endl;
+        return -1;
+    }
+    else
+    {
+        cout << "复制文本成功.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP(match);
     }
 
     INPUT_BACK();
-    LONG_DELAY;//长延时等剪切板提示消失
-    //长点击pipe文档
-    ret = FindTargetClick(PIPETXT_PATH, true);
-    if(ret < 0)
+
+    match = FindTargetForDelay(PIPETXT_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
     {
-        cout << "warning :" << PIPETXT_PATH << "   NOT FOUND !" << endl;
+        cout << "无法找到管道文件...\n" <<endl;
         return -1;
     }
-    SHORT_DELAY;;
-    //删除文本文件
-    ret = FindTargetClick(DELFILE_PATH, false);
-    if(ret < 0)
+    else
     {
-        cout << "warning :" << DELFILE_PATH << "   NOT FOUND !" << endl;
+        cout << "找到管道文件准备删除.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP_DELAY(match,750);
+    }
+
+    match = FindTargetForDelay(DELFILE_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "无法找到删除按钮...\n" <<endl;
         return -1;
     }
-    SHORT_DELAY;
-    //删除确定
-    ret = FindTargetClick(DELFILECERTAIN_PATH, false);
-    if(ret < 0)
+    else
     {
-        cout << "warning :" << DELFILECERTAIN_PATH << "   NOT FOUND !" << endl;
+        cout << "找到管删除按钮.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP(match);
+    }
+    match = FindTargetForDelay(DELFILECERTAIN_PATH,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "无法找到删除确认按钮...\n" <<endl;
         return -1;
+    }
+    else
+    {
+        cout << "删除完成.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+        INPUT_TAP(match);
     }
     return 0;
 }
