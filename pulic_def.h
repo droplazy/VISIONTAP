@@ -5,6 +5,40 @@
 #include <unistd.h>
 using namespace std;
 
+#include <vector>
+#include <string>
+
+class StringList {
+public:
+    // 添加元素到末尾
+    void append(const std::string& str) {
+        list.push_back(str);
+    }
+
+    // 获取指定位置的元素
+    std::string at(int index) const {
+        if (index >= 0 && index < list.size()) {
+            return list[index];
+        }
+        return "";  // 返回空字符串，如果索引无效
+    }
+
+    // 获取列表的大小
+    size_t size() const {
+        return list.size();
+    }
+
+    // 输出所有字符串
+    void print() const {
+        for (const auto& str : list) {
+            std::cout << str << std::endl;
+        }
+    }
+
+private:
+    std::vector<std::string> list;
+};
+
 typedef enum {
     APP_TIKTOK_ENUM = 1,          // TikTok
     APP_WECHAT_ENUM = 2,          // WeChat

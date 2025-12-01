@@ -13,9 +13,9 @@ typedef struct {
 } mqtt_config_t;
 
 typedef struct {
-     bool newmsg;
-     char topic[128]; //
-     char message[512]; //
+    bool newmsg;
+    char topic[128]; //
+    char message[512]; //
 } mqtt_massage_t;
 
 extern mqtt_massage_t mqtt_msg;

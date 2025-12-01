@@ -1,9 +1,41 @@
 #include "machine_vision.h"
 #include "screen_tap.h"
 #include <iostream>
+
 #include <filesystem>
 #include <chrono>
 #include <thread>
+#include <string>
+
+#if 0
+#include <jni.h>
+// 用来获取 Java 环境的引用
+JNIEnv* env;  // 这是从 JNI 中传递的环境对象
+jobject context;  // Android 的 Context 对象
+
+// JNI 方法：复制文本到剪贴板
+void copyToClipboard(const std::string& text) {
+    cout << "debugdebug debug \n" << endl;
+    jclass cls = env->FindClass("com/example/yourapp/ClipboardHelper");
+    jmethodID mid = env->GetStaticMethodID(cls, "copyToClipboard", "(Landroid/content/Context;Ljava/lang/String;)V");
+
+    jstring jText = env->NewStringUTF(text.c_str());
+    env->CallStaticVoidMethod(cls, mid, context, jText);
+    env->DeleteLocalRef(jText);
+}
+
+// JNI 方法：从剪贴板获取文本
+std::string getFromClipboard() {
+    jclass cls = env->FindClass("com/example/yourapp/ClipboardHelper");
+    jmethodID mid = env->GetStaticMethodID(cls, "getFromClipboard", "(Landroid/content/Context;)Ljava/lang/String;");
+    jstring result = (jstring)env->CallStaticObjectMethod(cls, mid, context);
+
+    const char* nativeString = env->GetStringUTFChars(result, 0);
+    std::string str(nativeString);
+    env->ReleaseStringUTFChars(result, nativeString);
+    return str;
+}
+#endif
 // 打开指定的应用
 void turnon_application(AppType apptype)
 {
@@ -73,7 +105,7 @@ void TURN_ON_TIKTOK(void)
     // TODO: 填充启动 TikTok 的逻辑
     std::cout << "Launching TikTok..." << std::endl;
     INPUT_HOME();
-   /* SHORT_DELAY;
+    /* SHORT_DELAY;
     OPEN_FILE_MANAGER() ;
     SHORT_DELAY;
 */
@@ -172,7 +204,7 @@ int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) {
     while (1) {
         // 检查文件是否存在
         if (access(filePath, F_OK) == 0) {
-            printf("文件存在!\n");
+          //  printf("文件存在!\n");
             return 1; // 文件存在
         }
 
@@ -235,7 +267,7 @@ ad_point FindTargetReturnPoint(string targetPng)
     ad_point match = {-1,-1};
 
 
-   // cout << "entrance3!!!!!!\n";
+    // cout << "entrance3!!!!!!\n";
     cv::Mat targetImage;
     cv::Mat templateImage;
     int i;
@@ -272,30 +304,30 @@ ad_point FindTargetReturnPoint(string targetPng)
         // 如果匹配的分数小于0.8，返回-1
         if (score < 0.8 ) {
 #if 1
-                // 在目标图像中用红色框标记匹配区域
-                cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
-                cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
+            // 在目标图像中用红色框标记匹配区域
+            cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
+            cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
 
-                // 用红色框住匹配区域
-                cv::rectangle(debugImage, matchRect, cv::Scalar(0, 255, 0), 2); // 红色框
+            // 用红色框住匹配区域
+            cv::rectangle(debugImage, matchRect, cv::Scalar(0, 255, 0), 2); // 红色框
 
-                // 计算矩形中心点
-                cv::Point center(matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2);
+            // 计算矩形中心点
+            cv::Point center(matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2);
 
-                // 在矩形中心画一个红色点
-                cv::circle(debugImage, center, 5, cv::Scalar(0, 0, 255), -1); // 红色点
+            // 在矩形中心画一个红色点
+            cv::circle(debugImage, center, 5, cv::Scalar(0, 0, 255), -1); // 红色点
 
-                // 保存调试图像到本地
-                cv::imwrite("debug_image_with_red_box.jpg", debugImage);
+            // 保存调试图像到本地
+            cv::imwrite("debug_image_with_red_box.jpg", debugImage);
 #endif
 
-                return {-1,-1};
+            return {-1,-1};
         }
         else
         {
             break;
         }
-       // sleep(1);//
+        // sleep(1);//
     }
 
     // 在目标图像中用红色框标记匹配区域
@@ -361,8 +393,8 @@ int FindTargetClick(string targetPng,bool clickdelay)
         if (score < 0.8 ) {
             if(i >= 2)
             {
-            cout << "score :" <<score<< "\n bad score"<<"\n" << "wait times : " << i+1 <<"\n";
-            return -1;
+                cout << "score :" <<score<< "\n bad score"<<"\n" << "wait times : " << i+1 <<"\n";
+                return -1;
             }
         }
         else
@@ -379,11 +411,11 @@ int FindTargetClick(string targetPng,bool clickdelay)
     if(clickdelay)
     {
         INPUT_TAP_DELAY(match,1500);
-         sleep(2);
+        sleep(2);
     }
     else
     {
-            INPUT_TAP(match);
+        INPUT_TAP(match);
     }
     cout << "click point :" <<match.x <<","<< match.y  \
          << "score :" <<score << "\n" \

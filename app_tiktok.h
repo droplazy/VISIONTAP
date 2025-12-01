@@ -12,6 +12,8 @@
 
 
 
+
+
 #define TIKTOK_OPT_COMMENTS {1000, 249}    // 评论
 #define TIKTOK_OPT_CLOSE_COMMENTS {1000, 197}  // 关闭评论
 #define TIKTOK_OPT_LIKES {994, 200}       // 点赞
@@ -85,6 +87,7 @@
 #define TIKTOK_LIVING_TERMINATE_UI_CV    "/data/machine_vision/apppic/livingTerminerd.png"   //
 #define TIKTOK_LIVING_FOLLOWED_UI_CV    "/data/machine_vision/apppic/Followed.png"   //
 #define TIKTOK_LIVING_FOLLOWED_2_UI_CV    "/data/machine_vision/apppic/Followed_2.png"   //
+#define TIKTOK_LIVING_PROHIBIT_FOLLOWED_UI_CV    "/data/machine_vision/apppic/ProhibitFollow.png"   //
 
 #define TIKTOK_LIVING_FOLLOW_OK_UI_CV    "/data/machine_vision/apppic/followsuccess.png"   //
 #define TIKTOK_LIVING_FOLLOW_MAXED_UI_CV    "/data/machine_vision/apppic/followmax.png"   //
@@ -96,6 +99,8 @@
 #define TIKTOK_CONTENT_SHARESEND_CV    "/data/machine_vision/apppic/sharesend.png"   //
 #define TIKTOK_CONTENT_SPEICYTALK_2_CV    "/data/machine_vision/apppic/speicymuilty_2.png"   //.png
 #define TIKTOK_CONTENT_SEARCHPAGE_CV    "/data/machine_vision/apppic/searchpage.png"   //.png
+#define TIKTOK_CONTENT_SEARCHPFILLED_CV    "/data/machine_vision/apppic/searchfilled.png"   //.png
+#define TIKTOK_CONTENT_SHAREDLINK_CV    "/data/machine_vision/apppic/opensharedcontent.png"   //.png
 
 // 类声明
 class APP_TIKTOK {
@@ -109,22 +114,39 @@ public:
         LONG_VIDEO        // 长视频
     };
     // 枚举类型
-    enum CONTENT_OPT {
-        GIVELIKE_OPT,
-        COMMENT_OPT,
-        FAVOURITE_OPT,
-        FORWARD_OPT
+    enum ACTING_MOTION {
+        IDLE,
+        SCROLLING,    //刷视频
+        LIVINGROOM,   // 看直播
+        CONTENT_HOT,      // 点评
+        TALKING        // 聊天
     };
+
+    typedef int CONTENT_OPT;
+    enum  {
+        GIVELIKE_OPT   = 1 << 0,  // 0001
+        COMMENT_OPT    = 1 << 1,  // 0010
+        FAVOURITE_OPT  = 1 << 2,  // 0100
+        FORWARD_OPT    = 1 << 3   // 1000
+    };
+    typedef struct {
+        ad_point like;
+        ad_point comment;
+        ad_point favour;  // 应为 "favour"，但保持原样以匹配需求
+        ad_point forward;
+    } ad_operations;
     // 构造函数和析构函数
     APP_TIKTOK();
     ~APP_TIKTOK();
 
-
-
+    //stringlist
+    ACTING_MOTION CURRENT_MOTION = IDLE;
     //养号
     void FollowMode(string FollowText, int circleTimes);//找直播间互粉
     void ScrollingShortVideos(int clycles);//刷短视频  穿插分享 点赞 评论
-
+    //指令
+    int SpeicyContentOperation(string link,CONTENT_OPT opt,string content);//评论点赞转发推荐 指定作品
+    int SpeicyLivingRoomOnSite(string link);
 
 
 
@@ -134,9 +156,7 @@ public:
 
 
 
-    void ContentComment();
 
-    void ContentForward();
 private:
     // 线程执行的内容
     void run();
@@ -153,7 +173,7 @@ private:
     void beatBack(int cnt);
     void randomCickScreen();//直播间点赞
     int SearchPersonZone(string Name);//进入搜索内容展示
-
+    int enterSpeicyContent(string content ,ad_operations &opt_point);//进入指定的内容;
     int SendMessageToPerson(string name, string message);//发送私信
     bool isLivingRoom();
     int EntranceLivingRoom(string name);//进入指定直播间
@@ -161,8 +181,10 @@ private:
     int FollowSpecifiedUser(string name);//关注指定人
     int RandomFollowUser();//随机关注路人 （在胡粉直播间）
     bool LaunchToHomepage();
-    void RandomShortVideoOperation(ad_point click, CONTENT_OPT opt);
-
+    void RandomShortVideoOperation(ad_point click, CONTENT_OPT opt,string content);
+    void ContentComment(string content);
+    void ContentForward();
+    int enterSpeicyLivingrom(string content);
 };
 
 #endif // APP_TIKTOK_H

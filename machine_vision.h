@@ -41,7 +41,10 @@ void TURN_ON_QQ(void);              // 启动 QQ
 void TURN_ON_KUAISHOU(void);        // 启动 Kuaishou
 void TURN_ON_BILIBILI(void);        // 启动 Bilibili
 void INPUT_TYPEINGTEXT(string text);
-
+// // JNI 方法：复制文本到剪贴板
+// void copyToClipboard(const std::string& text);
+// // JNI 方法：从剪贴板获取文本
+// std::string getFromClipboard();
 std::string readTemperature();
 int CopyTextFormSys(string texture);
 int FindTargetClick(string targetPng, bool clickdelay); //clickdelay=1 重点击  否则轻量点击
