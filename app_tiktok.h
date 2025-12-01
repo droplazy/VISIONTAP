@@ -145,8 +145,8 @@ public:
     void FollowMode(string FollowText, int circleTimes);//找直播间互粉
     void ScrollingShortVideos(int clycles);//刷短视频  穿插分享 点赞 评论
     //指令
-    int SpeicyContentOperation(string link,CONTENT_OPT opt,string content);//评论点赞转发推荐 指定作品
-    int SpeicyLivingRoomOnSite(string link);
+    int SpecifyContentOperation(string link,CONTENT_OPT opt,string content);//评论点赞转发推荐 指定作品
+    int SpecifyLivingRoomOnSite(string link);
 
 
 
@@ -173,7 +173,7 @@ private:
     void beatBack(int cnt);
     void randomCickScreen();//直播间点赞
     int SearchPersonZone(string Name);//进入搜索内容展示
-    int enterSpeicyContent(string content ,ad_operations &opt_point);//进入指定的内容;
+    int enterSpecifyContent(string content ,ad_operations &opt_point);//进入指定的内容;
     int SendMessageToPerson(string name, string message);//发送私信
     bool isLivingRoom();
     int EntranceLivingRoom(string name);//进入指定直播间
@@ -184,7 +184,7 @@ private:
     void RandomShortVideoOperation(ad_point click, CONTENT_OPT opt,string content);
     void ContentComment(string content);
     void ContentForward();
-    int enterSpeicyLivingrom(string content);
+    int enterSpecifyLivingrom(string content);
 };
 
 #endif // APP_TIKTOK_H

@@ -436,10 +436,10 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
 
 }
 
-int APP_TIKTOK::SpeicyContentOperation(string link,CONTENT_OPT opt,string content)
+int APP_TIKTOK::SpecifyContentOperation(string link,CONTENT_OPT opt,string content)
 {
     ad_operations click_p={0};
-    int ret = enterSpeicyContent(link,click_p);
+    int ret = enterSpecifyContent(link,click_p);
 
     if(!ret && (opt&GIVELIKE_OPT))
     {
@@ -465,9 +465,9 @@ int APP_TIKTOK::SpeicyContentOperation(string link,CONTENT_OPT opt,string conten
     return 0;
 }
 
-int APP_TIKTOK::SpeicyLivingRoomOnSite(string link)
+int APP_TIKTOK::SpecifyLivingRoomOnSite(string link)
 {
-    if(enterSpeicyLivingrom(link) <0)
+    if(enterSpecifyLivingrom(link) <0)
     {
         cout << "进入直播间失败 ...." <<endl;
         return -1;
@@ -832,7 +832,7 @@ int APP_TIKTOK::SearchPersonZone(string Name)
     }*/
     return 0;
 }
-int APP_TIKTOK::enterSpeicyLivingrom(string content)
+int APP_TIKTOK::enterSpecifyLivingrom(string content)
 {
     if(CopyTextFormSys(content))
     {
@@ -898,7 +898,7 @@ int APP_TIKTOK::enterSpeicyLivingrom(string content)
     }
     return 0;
 }
-int APP_TIKTOK::enterSpeicyContent(string content ,ad_operations &opt_point)
+int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
 {
     if(CopyTextFormSys(content))
     {
@@ -1403,7 +1403,7 @@ void APP_TIKTOK::run()
     while (1)
     {
 
-         SpeicyLivingRoomOnSite("5- #在抖音，记录美好生活#【阿红金铲铲（阿红庄园）】正在直播，来和我一起支持Ta吧。复制下方链接，打开【抖音】，直接观看直播！ https://v.douyin.com/Mczs5gkr-h0/ 7@0.com :3pm");
+         SpecifyLivingRoomOnSite("5- #在抖音，记录美好生活#【阿红金铲铲（阿红庄园）】正在直播，来和我一起支持Ta吧。复制下方链接，打开【抖音】，直接观看直播！ https://v.douyin.com/Mczs5gkr-h0/ 7@0.com :3pm");
         // SpeicyContentOperation("8.25 复制打开抖音，看看【焦太郎的作品】淘汰回放# 意想不到的结局 # 万万没想到 # 情... https://v.douyin.com/--FOVHH3TwQ/ 05/28 t@E.ho lCu:/ ",opt);
         // sleep(100);
         if(!running)
