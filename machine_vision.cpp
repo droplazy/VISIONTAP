@@ -221,20 +221,7 @@ int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) {
         usleep(100000);  // 100毫秒
     }
 }
-std::string readTemperature() {
-    std::ifstream tempFile("/sys/class/thermal/thermal_zone0/temp");
-    if (!tempFile.is_open()) {
-        return "无法读取温度数据!";
-    }
 
-    int temp;
-    tempFile >> temp;
-    tempFile.close();
-
-    // 将温度转化为摄氏度并返回
-    double celsiusTemp = temp / 1000.0;
-    return "当前设备温度: " + std::to_string(celsiusTemp) + " °C";
-}
 ad_point FindTargetForDelay(string targetPng,double &score,int clycles)
 {
     for (int var = 0; var < clycles; ++var)

@@ -45,7 +45,6 @@ void INPUT_TYPEINGTEXT(string text);
 // void copyToClipboard(const std::string& text);
 // // JNI 方法：从剪贴板获取文本
 // std::string getFromClipboard();
-std::string readTemperature();
 int CopyTextFormSys(string texture);
 int FindTargetClick(string targetPng, bool clickdelay); //clickdelay=1 重点击  否则轻量点击
 ad_point FindTargetReturnPoint(string targetPng);//返回目标位置

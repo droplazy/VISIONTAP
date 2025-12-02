@@ -64,4 +64,6 @@ add_executable(cv_exe
     opencv_utils.h
     mqtt_utils.h
     mqtt_utils.cpp
+    json_utils.h
+    json_utils.cpp
 )

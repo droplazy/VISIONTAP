@@ -1419,21 +1419,8 @@ void APP_TIKTOK::run()
                 continue;
             }
         }
-        msg = "开始胡粉 现在的温度是:" + readTemperature();
-        SendMessageToPerson("神田川",msg);
-        beatBack(5);
-        FollowMode("一起努力🪅🪅🪅🪅有官必洄   一起努力🪅🪅🪅🪅有官必洄",100);
 
-        msg = "开始刷视频 现在的温度是:" + readTemperature();
-        SendMessageToPerson("神田川",msg);
-        beatBack(5);
-        ScrollingShortVideos(500);
-        msg = "休息一小时 现在的温度是:" + readTemperature();
 
-        INPUT_HOME();
-        for (int var = 0; var < 3600; ++var) {
-            sleep(1);
-        }
     }
 
 }
