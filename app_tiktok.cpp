@@ -5,9 +5,8 @@
 #include <stdio.h>
 #include "screen_tap.h"
 
+
 APP_TIKTOK::APP_TIKTOK() : running(true) {
-    // 构造函数
-    turnon_application(APP_TIKTOK_ENUM);
 
 }
 
@@ -1399,28 +1398,59 @@ void APP_TIKTOK::run()
 {
     LONG_DELAY;
     string msg;
-    CONTENT_OPT opt=GIVELIKE_OPT|COMMENT_OPT|FAVOURITE_OPT|FORWARD_OPT;
+    running =false;
+    //CONTENT_OPT opt=GIVELIKE_OPT|COMMENT_OPT|FAVOURITE_OPT|FORWARD_OPT;
     while (1)
     {
-
-         SpecifyLivingRoomOnSite("5- #在抖音，记录美好生活#【阿红金铲铲（阿红庄园）】正在直播，来和我一起支持Ta吧。复制下方链接，打开【抖音】，直接观看直播！ https://v.douyin.com/Mczs5gkr-h0/ 7@0.com :3pm");
-        // SpeicyContentOperation("8.25 复制打开抖音，看看【焦太郎的作品】淘汰回放# 意想不到的结局 # 万万没想到 # 情... https://v.douyin.com/--FOVHH3TwQ/ 05/28 t@E.ho lCu:/ ",opt);
-        // sleep(100);
-        if(!running)
+        if(COMMAND != NONE)
         {
-            if(LaunchToHomepage())
-            {
-                INPUT_BACK();
-                running =true;
+            // 构造函数
+            turnon_application(APP_TIKTOK_ENUM);
+            while (1) {
+                if(!running)
+                {
+                    if(LaunchToHomepage())
+                    {
+                        INPUT_BACK();
+                        running =true;
+                  //      CURRENT_MOTION= Launched;
+                        break;
+                    }
+                    else
+                    {
+                        //  beatBack(5);
+                        continue;
+                    }
+                }
             }
-            else
+            if(COMMAND == SEND_MESSAGE)
             {
-              //  beatBack(5);
-                continue;
+                ContentExtractor extractor;
+                std::string remark111 = "ID:147003193:ID LINK:6.17 复制打开抖音，看看【老炮探案的作品】河北秦皇岛：那些深夜出没的女孩，背后究竟隐藏着什么... https://v.douyin.com/ag52xZSm1tM/ aaA:/ 11/14 W@M.jp:LINK MSG:我还活着呢:MSG";
+                auto [id, link, msg] = extractor.extractContent(remark111);
+                std::cout << "remark1: " << remark111 << std::endl;
+                // 输出提取的结果
+                std::cout << "内容1: " << id << std::endl;
+                std::cout << "内容2: " << link << std::endl;
+                std::cout << "内容3: " << msg << std::endl;
+                SendMessageToPerson(id,msg);
+                beatBack(10);
+                INPUT_HOME();
+                COMMAND = NONE;
+
             }
+
         }
 
+         //SpecifyLivingRoomOnSite("5- #在抖音，记录美好生活#【阿红金铲铲（阿红庄园）】正在直播，来和我一起支持Ta吧。复制下方链接，打开【抖音】，直接观看直播！ https://v.douyin.com/Mczs5gkr-h0/ 7@0.com :3pm");
+        // SpeicyContentOperation("8.25 复制打开抖音，看看【焦太郎的作品】淘汰回放# 意想不到的结局 # 万万没想到 # 情... https://v.douyin.com/--FOVHH3TwQ/ 05/28 t@E.ho lCu:/ ",opt);
+        // sleep(100);
+         cout << "running  <<<< ....." <<endl;
+         sleep(1);
+#if 0
 
+
+#endif
     }
 
 }
@@ -1439,7 +1469,10 @@ void APP_TIKTOK::scrollingUP()
     // 执行滑动操作
     INPUT_SWIPE(start, end, duration);
 }
+void APP_TIKTOK::turnoffAPP()
+{
 
+}
 void APP_TIKTOK::scrollingDown()
 {
     // 给start和end坐标添加随机抖动

@@ -58,7 +58,14 @@ struct Action {
     string start_time;   // 开始时间
     string end_time;     // 结束时间
 };
-
+// 定义结构体
+struct Dev_Action {
+    string action;         // 动作名称
+    string sub_action;         // 动作名称
+    string start_time;   // 开始时间
+    string end_time;     // 结束时间
+    string remark;     // 结束时间
+};
 struct DeviceData {
    //  string status;               // 设备状态（在线/离线）
     Action current_action;            // 当前动作
@@ -72,6 +79,9 @@ struct DeviceData {
      string mac;      // 警告信息
      string serial_number;        // 用户编号（设备序列号）
      string verification_code;    // 验证码
+     string usedProcess;
+     string ProcessID;
+
    //  string runtime;
 };
 
@@ -92,5 +102,11 @@ struct HeartbeatMessage {
  string execCommand(const std::string& cmd);
  NetworkInfo getNetworkInfo(const std::string& interface);
  std::string getUptime() ;
+ string check_message_type(const string& json_data);
+ string extract_json_field(const string& json_data, const string& field_name);
+
+
+
+
 
 #endif // OPENCV_UTILS_H

@@ -37,8 +37,10 @@ std::string generateHeartbeatJson(const HeartbeatMessage& heartbeat) {
          << "    \"error_flag\": " << (heartbeat.data.error_flag ? "true" : "false") << ",\n"
          << "    \"warning_message\": \"" << heartbeat.data.warning_message << "\",\n"
          << "    \"mac\": \"" << heartbeat.data.mac << "\",\n"
-       //  << "    \"runtime\": \"" << heartbeat.data.runtime << "\"\n"
-         << "    \"traffic_statistics\": \"" << heartbeat.data.totalTraffic << "\"\n"
+       //  << "    \"runtime\": \"" << heartbeat.data.runtime << "\"\n"    devicedata.ProcessID = "P001";
+         << "    \"traffic_statistics\": \"" << heartbeat.data.totalTraffic << "\",\n"
+         << "    \"usedProcess\": \"" << heartbeat.data.usedProcess << "\",\n"
+         << "    \"ProcessID\": \"" << heartbeat.data.ProcessID << "\"\n"
 
          << "  }\n"
          << "}";
@@ -193,4 +195,64 @@ NetworkInfo getNetworkInfo(const std::string& interface) {
     // std::cout << "ip : " << info.ip << std::endl;
 
     return info;
+}
+
+string check_message_type(const string& json_data) {
+    // 查找 "messageType" 字段的位置
+    size_t pos = json_data.find("\"messageType\":");
+
+    // 如果没有找到字段，则返回空
+    if (pos == string::npos) {
+        cout << "messageType not found!" << endl;
+        return "";
+    }
+    cout << "Found \"messageType\": at position " << pos << endl;
+
+    // 从字段位置开始，提取 "messageType" 的值
+    pos = json_data.find(":", pos);
+    if (pos == string::npos) {
+        cout << "Colon (:) not found after \"messageType\"" << endl;
+        return "";
+    }
+    cout << "Found colon (:) at position " << pos << endl;
+
+    // 跳过冒号，找到第一个非空字符（去掉空格和引号）
+    pos = json_data.find_first_not_of(" \t\n\r", pos + 1);
+    if (pos == string::npos) {
+        cout << "No non-whitespace character found after colon" << endl;
+        return "";
+    }
+    cout << "Found non-whitespace character at position " << pos << endl;
+
+    // 查找字段的结束位置，假设是双引号或其他标记
+    size_t end_pos = json_data.find_first_of("\"", pos + 1);
+    if (end_pos == string::npos) {
+        cout << "End quote for \"messageType\" not found!" << endl;
+        return "";
+    }
+    cout << "Found end quote at position " << end_pos << endl;
+
+    // 提取字符串，返回 messageType 的值
+    string message_type = json_data.substr(pos + 1, end_pos - pos - 1);
+    cout << "Extracted messageType: " << message_type << endl;
+
+    // 返回提取到的 messageType 字段值
+    return message_type;
+}
+// 函数：从 JSON 字符串中提取字段值
+string extract_json_field(const string& json_data, const string& field_name) {
+    size_t pos = json_data.find("\"" + field_name + "\":");
+    if (pos == string::npos) {
+        return "";
+    }
+    pos = json_data.find(":", pos);
+    if (pos == string::npos) {
+        return "";
+    }
+    pos = json_data.find_first_not_of(" \t\n\r", pos + 1);
+    size_t end_pos = json_data.find_first_of("\"", pos + 1);
+    if (end_pos == string::npos) {
+        return "";
+    }
+    return json_data.substr(pos + 1, end_pos - pos - 1);
 }

@@ -22,7 +22,7 @@ mqtt_config_t config = {
     .qos = 1
 };
 DeviceData devicedata ;
-
+int isConnected =0;
 
 // 初始化 Mosquitto 并连接
 
@@ -42,7 +42,8 @@ void getdeviceInfo()
     devicedata.serial_number = parseSerialNumber();
     devicedata.verification_code = "GXFC";
     devicedata.boot_time = getUptime();
-
+    devicedata.usedProcess = "xxxxx";
+    devicedata.ProcessID = "1";
   //  devicedata.runtime =
     return ;
 }
@@ -56,23 +57,40 @@ int publishHeart()
     heartbeat.data =devicedata;
     string payload =  generateHeartbeatJson(heartbeat);
     // 发布一条消息
-    string topic ="device/" +devicedata.serial_number;
+    string topic ="Device/Report/" +devicedata.serial_number;
     int ret = mqtt_publish(mosq, topic.c_str(),payload.c_str(), config.qos);
     if (ret != MOSQ_ERR_SUCCESS) {
         mqtt_cleanup(mosq);
         return ret;
     }
-    cout << "topic : \n " << topic << endl;
-    cout << "payload : \n " << payload << endl;
+    // cout << "topic : \n " << topic << endl;
+    // cout << "payload : \n " << payload << endl;
 
 
     return 0;
 }
+// 订阅主题parseSerialNumber();
+int SubscribeServerMsg() {
+
+    string topic ="Device/Dispatch/" +devicedata.serial_number;
+    cout << "尝试订阅: " << topic<<endl;
+    int ret =mqtt_subscribe(mosq,topic.c_str(), config.qos);
+    if(ret == MOSQ_ERR_SUCCESS)
+    {
+        cout << "订阅成功: " <<ret   <<"主题"<< topic<<endl;
+
+        return 0;
+
+    }
+    cout << "订阅失败: "<< ret<< topic<<endl;
+    return -1;
+}
 
 int main() {
-
 #if 1
-
+    class APP_TIKTOK app;
+    app.start();
+    getdeviceInfo();
     int ret = mqtt_connect(&mosq, &config);
     if (ret != MOSQ_ERR_SUCCESS) {
         return ret;
@@ -81,13 +99,7 @@ int main() {
     // 设置消息回调
     mqtt_set_message_callback(mosq);
 
-    // 订阅主题
-    ret = mqtt_subscribe(mosq, "test/topic123", config.qos);
-    if (ret != MOSQ_ERR_SUCCESS) {
-        mqtt_cleanup(mosq);
-        return ret;
-    }
-
+    SubscribeServerMsg();
     // // 发布一条消息
     // ret = mqtt_publish(mosq, "test/topic123", "来自设备端", config.qos);
     // if (ret != MOSQ_ERR_SUCCESS) {
@@ -104,7 +116,7 @@ int main() {
         if (ret != MOSQ_ERR_SUCCESS)
         {
             fprintf(stderr, "Error in mosquitto_loop: %s\n", mosquitto_strerror(ret));
-           // 尝试重新连接
+            // 尝试重新连接
             while (1)
             {
                 cout << "网络错误尝试重新连接....." << endl;
@@ -123,16 +135,48 @@ int main() {
             break;
         }
 
-        if(strcmp(mqtt_msg.message,"来自PC端")==0)
+        if(mqtt_msg.newmsg)
         {
-            cout <<"我是非阻塞....\n" << endl;
+          string messagetype = check_message_type(mqtt_msg.message);
+
+              if(messagetype == "command")
+              {
+                  Dev_Action action;
+                  action.action = extract_json_field(mqtt_msg.message, "action");
+                  action.sub_action = extract_json_field(mqtt_msg.message, "sub_action");
+                  action.start_time = extract_json_field(mqtt_msg.message, "start_time");
+                  action.end_time = extract_json_field(mqtt_msg.message, "end_time");
+                  action.remark = extract_json_field(mqtt_msg.message, "remark");
+                  if( action.action == "吃饭")
+                  {
+                     // cout <<"获取命令1：" << action.action << action.sub_action <<endl;
+
+                    if(action.sub_action=="米饭")
+                      {
+                        app.remark =action.remark;
+                        app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE;
+
+                        cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+
+                      }
+                  }
+              }
+              else if(messagetype == "process")
+              {
+
+              }
+              else
+              {
+                  cout << "err json ...."<< messagetype << endl;
+              }
+            mqtt_msg.newmsg=false;
             strcpy(mqtt_msg.message,"");
         }
         // 获取当前时间
         auto current_time = std::chrono::steady_clock::now();
 
         // 判断是否已经过去了3秒
-        if (std::chrono::duration_cast<std::chrono::seconds>(current_time - last_time).count() >= 3) {
+        if (std::chrono::duration_cast<std::chrono::seconds>(current_time - last_time).count() >= 5) {
             // 每3秒调用一次publishHeart()
             publishHeart();
             last_time = current_time;  // 更新上次调用时间
@@ -146,10 +190,7 @@ int main() {
     mqtt_cleanup(mosq);
 #endif
 
-    // class APP_TIKTOK app;
-    // app.start();
+
     //copyToClipboard("我是张家豪");
     return 0;
 }
-
-

@@ -8,7 +8,34 @@
 #include <cstring>
 #include <cstdio>
 
+#include <regex>
+#include <tuple>
 
+
+
+
+class ContentExtractor {
+public:
+    // 提取ID、LINK和MSG中的内容
+    std::tuple<std::string, std::string, std::string> extractContent(const std::string& input) {
+        // 查找 ID
+        size_t id_start = input.find("ID:") + 3; // 找到 ID: 后面的内容
+        size_t id_end = input.find(":ID", id_start); // 找到 ID: 后的结束位置
+        std::string id = input.substr(id_start, id_end - id_start);
+
+        // 查找 LINK
+        size_t link_start = input.find("LINK:") + 5; // 找到 LINK: 后面的内容
+        size_t link_end = input.find(":LINK", link_start); // 找到 LINK: 后的结束位置
+        std::string link = input.substr(link_start, link_end - link_start);
+
+        // 查找 MSG
+        size_t msg_start = input.find("MSG:") + 4; // 找到 MSG: 后面的内容
+        size_t msg_end = input.find(":MSG", msg_start); // 找到 MSG: 后的结束位置
+        std::string msg = input.substr(msg_start, msg_end - msg_start);
+
+        return std::make_tuple(id, link, msg);
+    }
+};
 
 
 
@@ -121,7 +148,18 @@ public:
         CONTENT_HOT,      // 点评
         TALKING        // 聊天
     };
-
+    enum ACTING_COMMAND {
+        NONE,
+        LVIVINGROOM_ONSITE,
+        CONTENT_OPTRATION,
+        SEND_MESSAGE
+    };
+    // 枚举类型
+    enum APP_LAUNCH {
+        TURNOFF,
+        Launching,
+        Launched
+    };
     typedef int CONTENT_OPT;
     enum  {
         GIVELIKE_OPT   = 1 << 0,  // 0001
@@ -132,15 +170,18 @@ public:
     typedef struct {
         ad_point like;
         ad_point comment;
-        ad_point favour;  // 应为 "favour"，但保持原样以匹配需求
+        ad_point favour;
         ad_point forward;
     } ad_operations;
     // 构造函数和析构函数
     APP_TIKTOK();
     ~APP_TIKTOK();
 
-    //stringlist
+
     ACTING_MOTION CURRENT_MOTION = IDLE;
+    APP_LAUNCH     LAUNCH = TURNOFF;
+    ACTING_COMMAND COMMAND =NONE;
+    string remark;
     //养号
     void FollowMode(string FollowText, int circleTimes);//找直播间互粉
     void ScrollingShortVideos(int clycles);//刷短视频  穿插分享 点赞 评论
@@ -153,10 +194,6 @@ public:
     bool checkAPKRunning(string apk_name);
     void start();// 启动线程
     void stop();// 停止线程
-
-
-
-
 private:
     // 线程执行的内容
     void run();
@@ -185,6 +222,8 @@ private:
     void ContentComment(string content);
     void ContentForward();
     int enterSpecifyLivingrom(string content);
+    std::tuple<std::string, std::string, std::string> extractContent(const std::string &input);
+    void turnoffAPP();
 };
 
 #endif // APP_TIKTOK_H
