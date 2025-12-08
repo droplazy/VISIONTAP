@@ -57,9 +57,9 @@ int mqtt_publish(struct mosquitto *mosq, const char *topic, const char *message,
 }
 // 消息接收回调
 void mqtt_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message) {
-    printf("Received message: %s on topic %s\n", (char *)message->payload, message->topic);
-    strlcpy(mqtt_msg.message,(char *)message->payload,512);
-    strlcpy(mqtt_msg.topic,(char *)message->topic,128);
+    printf("Received message [%d]: %s on topic %s\n", strlen((char *)message->payload),(char *)message->payload, message->topic);
+    strlcpy(mqtt_msg.message,(char *)message->payload,5120);
+    strlcpy(mqtt_msg.topic,(char *)message->topic,512);
     mqtt_msg.newmsg = true;
 }
 

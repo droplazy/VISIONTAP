@@ -291,9 +291,30 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
         {
 
             cout << "ele 2 _ score:" << score << " bad score,try another template\n" <<endl;
+            match = FindPicTargetWithMask(simple, templateImage,templateImage, score);
+            if(score< 0.8 )
+            {
 
-            finalscore =score;
-            return false;
+                cout << "ele 3 _ score:" << score << " bad score,try another template\n" <<endl;
+
+
+                finalscore =score;
+                return false;
+            }
+            else
+            {
+                cout << "score:" << score << "match: "<< match.x << "," <<match.y<<"\n" <<endl;
+                like.x =  match.x+15+973;
+                comment.x =  match.x+15+973;
+                farvour.x =  match.x+15+973;
+                forward.x =  match.x+15+973;
+                like.y    =  match.y+14+188;
+                comment.y =  match.y+73+188;
+                farvour.y =  match.y+135+188;
+                forward.y =  match.y+189+188;
+                finalscore =score;
+            }
+
         }
         else
         {
@@ -320,7 +341,7 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
         like.y =  match.y+8+188;
         comment.y =  match.y+61+188;
         farvour.y =  match.y+116+188;
-        forward.y =  match.y+190+188;
+        forward.y =  match.y+168+188;
         finalscore =score;
     }
     if(isnan(score))
@@ -444,26 +465,26 @@ int APP_TIKTOK::SpecifyContentOperation(string link,CONTENT_OPT opt,string comme
 
     int ret = enterSpecifyContent(link,click_p);
     SHORT_DELAY;
-
+    if(ret != 0)
+    {
+        return ret ;
+    }
     if(!ret && (opt&GIVELIKE_OPT))
     {
         RandomShortVideoOperation(click_p.like,GIVELIKE_OPT,"");
         SHORT_DELAY;
-        //    INPUT_TAP(click_p.like);
-    }
-    if(!ret && (opt&COMMENT_OPT))
-    {
-        RandomShortVideoOperation(click_p.comment,COMMENT_OPT,comment);
     }
     if(!ret && (opt&FAVOURITE_OPT))
     {
         RandomShortVideoOperation(click_p.favour,FAVOURITE_OPT,"");
-
-        //INPUT_TAP(click_p.farvour);
     }
     if(!ret && (opt&FORWARD_OPT))
     {
         RandomShortVideoOperation(click_p.forward,FORWARD_OPT,"");
+    }
+    if(!ret && (opt&COMMENT_OPT))
+    {
+        RandomShortVideoOperation(click_p.comment,COMMENT_OPT,comment);
     }
     beatBack(5);
     return 0;
@@ -955,7 +976,7 @@ int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
         }
 
     }
-    if(var>2)
+    if(var>5)
     {
         cout << "短视频四要素图像对比失败.."<< endl;
         return -1;
@@ -1403,28 +1424,31 @@ void APP_TIKTOK::run()
 {
     LONG_DELAY;
     string msg;
-    //running =false;
+    running =false;
     //CONTENT_OPT opt=GIVELIKE_OPT|COMMENT_OPT|FAVOURITE_OPT|FORWARD_OPT;
     while (1)
     {
-        if(COMMAND != NONE)
+        if(COMMAND != NONE && running ==false)
         {
-            // 构造函数
-            turnon_application(APP_TIKTOK_ENUM);
-            while (1)
-            {
-                if(LaunchToHomepage())
+                // 构造函数
+                turnon_application(APP_TIKTOK_ENUM);
+                while (1)
                 {
-                    INPUT_BACK();
-                    //      CURRENT_MOTION= Launched;
-                    break;
+                    if(LaunchToHomepage())
+                    {
+                        INPUT_BACK();
+                        running =true;
+                        break;
+                    }
+                    else
+                    {
+                        //  beatBack(5);
+                        continue;
+                    }
                 }
-                else
-                {
-                    //  beatBack(5);
-                    continue;
-                }
-            }
+        }
+        else if(COMMAND != NONE)
+        {
             if(COMMAND == ACTING_COMMAND::SEND_MESSAGE)
             {
                 ContentExtractor extractor;
@@ -1438,7 +1462,21 @@ void APP_TIKTOK::run()
                 beatBack(10);
                 INPUT_HOME();
                 COMMAND = NONE;
-
+                running = false;
+            }
+            if(COMMAND == ACTING_COMMAND::QUIT)
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+                beatBack(10);
+                INPUT_HOME();
+                COMMAND = NONE;
+                running = false;
             }
             else if(COMMAND == ACTING_COMMAND::LVIVINGROOM_ONSITE)
             {
@@ -1449,7 +1487,50 @@ void APP_TIKTOK::run()
                 std::cout << "link: " << link << std::endl;
                 std::cout << "msg: " << msg << std::endl;
                 std::cout << "mark: " << mark << std::endl;
-                SpecifyLivingRoomOnSite(link);
+
+                for (int i = 0; i < 3; ++i)
+                {
+                    cout << "检查直播间三要素 >>>......\n" << endl;
+
+                    if( isLivingRoom())
+                    {
+                        cout << "确认完毕 >>>......\n" << endl;
+                        break;
+                    }
+                    else if (i>=2)
+                    {
+                        SpecifyLivingRoomOnSite(link);
+                        break;
+                    }
+                }
+            }
+            else if(COMMAND == ACTING_COMMAND::LVIVINGROOM_BULLET)
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+                for (int i = 0; i < 15; ++i)
+                {
+                    cout << "检查直播间三要素 >>>......\n" << endl;
+
+                    if( isLivingRoom())
+                    {
+                        cout << "确认完毕 >>>......\n" << endl;
+                        break;
+                    }
+                    else if (i>=14)
+                    {
+                        SpecifyLivingRoomOnSite(link);
+                        break;
+                    }
+                }
+
+                SendBraggerForLivingRoom(msg,false);
+                COMMAND = ACTING_COMMAND::LVIVINGROOM_ONSITE;
             }
             else if(COMMAND == ACTING_COMMAND::CONTENT_OPTRATION)
             {
@@ -1477,10 +1558,14 @@ void APP_TIKTOK::run()
                     std::cout << "需要转发 .. " << std::endl;
                     opt |=FORWARD_OPT;
                 }
-                SpecifyContentOperation(link,opt,msg);
+                if(SpecifyContentOperation(link,opt,msg) !=  0)
+                {
+
+                    COMMAND = NONE;
+                }
                 beatBack(10);
                 INPUT_HOME();
-                COMMAND = NONE;
+                running = false;
             }
             else
             {
@@ -1491,10 +1576,10 @@ void APP_TIKTOK::run()
                 std::cout << "link: " << link << std::endl;
                 std::cout << "msg: " << msg << std::endl;
                 std::cout << "mark: " << mark << std::endl;
-
             }
-
         }
+
+
         cout << "running  <<<< ....."<<COMMAND <<endl;
         sleep(1);
 #if 0

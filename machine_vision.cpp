@@ -240,7 +240,7 @@ ad_point FindTargetForDelay(string targetPng,double &score,int clycles)
             return match;
         }
     }
-    cout << "警告:长时间未找到亩目标 已经退出...\n" << endl;
+  //  cout << "警告:长时间未找到亩目标 已经退出...\n" << endl;
 
     return {-1,-1};
 }

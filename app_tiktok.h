@@ -156,6 +156,8 @@ public:
         NONE,
         LVIVINGROOM_ONSITE,
         CONTENT_OPTRATION,
+        LVIVINGROOM_BULLET,
+        QUIT,
         SEND_MESSAGE
     };
     // 枚举类型
@@ -194,7 +196,7 @@ public:
     int SpecifyLivingRoomOnSite(string link);
 
 
-
+    bool running=false;
     bool checkAPKRunning(string apk_name);
     void start();// 启动线程
     void stop();// 停止线程

@@ -145,27 +145,39 @@ int main() {
                   action.start_time = extract_json_field(mqtt_msg.message, "start_time");
                   action.end_time = extract_json_field(mqtt_msg.message, "end_time");
                   action.remark = extract_json_field(mqtt_msg.message, "remark");
-                  if( action.action == "TICTOK")
+                  if( action.action == "抖音")
                   {
                      // cout <<"获取命令1：" << action.action << action.sub_action <<endl;
 
-                    if(action.sub_action=="SendMSg")
+                    if(action.sub_action=="私信")
                       {
                         app.remark =action.remark;
                         app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE;
                         cout <<"获取命令2：" << action.action << action.sub_action <<endl;
                       }
-                    else if(action.sub_action=="LIVING")
+                    else if(action.sub_action=="直播")
                     {
                         app.remark =action.remark;
                         app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_ONSITE;
                         cout <<"获取命令2：" << action.action << action.sub_action <<endl;
                     }
-                    else if(action.sub_action=="CONTENT")
+                    else if(action.sub_action=="评论")
                      {
                           app.remark =action.remark;
                           app.COMMAND = APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION;
                           cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+                    }
+                    else if(action.sub_action=="弹幕" )
+                    {
+                        app.remark =action.remark;
+                        app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_BULLET;
+                        cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+                    }
+                    else if(action.sub_action=="退出" )
+                    {
+                        app.remark =action.remark;
+                        app.COMMAND = APP_TIKTOK::ACTING_COMMAND::QUIT;
+                        cout <<"获取命令2：" << action.action << action.sub_action <<endl;
                     }
                   }
               }

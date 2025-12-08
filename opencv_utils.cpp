@@ -77,7 +77,7 @@ ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage, cv::M
 
     // 用红色框住匹配区域
     cv::rectangle(debugImage, matchRect, cv::Scalar(0, 0, 255), 2); // 红色框
-
+/*
     // 以红框的左上角为原点，画四个绿色点
     std::vector<cv::Point> points = {
         cv::Point(matchRect.x + 13, matchRect.y + 8),   // 点1
@@ -90,7 +90,7 @@ ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage, cv::M
     for (const auto& point : points) {
         cv::circle(debugImage, point, 5, cv::Scalar(0, 255, 0), -1);  // 绿色点，半径为5，-1表示填充
     }
-
+    */
     // 保存调试图像到本地
     cv::imwrite("debug_image_with_red_box.jpg", debugImage);
 
