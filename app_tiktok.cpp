@@ -6,7 +6,10 @@
 #include "screen_tap.h"
 
 
-APP_TIKTOK::APP_TIKTOK() : running(true) {
+
+
+APP_TIKTOK::APP_TIKTOK()
+{
 
 }
 
@@ -56,7 +59,7 @@ void APP_TIKTOK::start() {
 
 void APP_TIKTOK::stop() {
     // 停止线程
-    running = false;
+    //running = false;
     if (t.joinable()) {
         t.join();  // 等待线程结束
     }
@@ -372,8 +375,8 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
             {
                 cout <<"给予评论\n" << endl;
 
-               RandomShortVideoOperation(comment,COMMENT_OPT,"👍👍👍👍👍");
-                   beatBack(5);
+                RandomShortVideoOperation(comment,COMMENT_OPT,"👍👍👍👍👍");
+                beatBack(5);
             }
             usleep(500*1000);
 
@@ -435,20 +438,22 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
 
 }
 
-int APP_TIKTOK::SpecifyContentOperation(string link,CONTENT_OPT opt,string content)
+int APP_TIKTOK::SpecifyContentOperation(string link,CONTENT_OPT opt,string comment)
 {
     ad_operations click_p={0};
+
     int ret = enterSpecifyContent(link,click_p);
+    SHORT_DELAY;
 
     if(!ret && (opt&GIVELIKE_OPT))
     {
         RandomShortVideoOperation(click_p.like,GIVELIKE_OPT,"");
         SHORT_DELAY;
-    //    INPUT_TAP(click_p.like);
+        //    INPUT_TAP(click_p.like);
     }
     if(!ret && (opt&COMMENT_OPT))
     {
-        RandomShortVideoOperation(click_p.comment,COMMENT_OPT,content);
+        RandomShortVideoOperation(click_p.comment,COMMENT_OPT,comment);
     }
     if(!ret && (opt&FAVOURITE_OPT))
     {
@@ -575,7 +580,7 @@ void APP_TIKTOK::ContentComment(string content)
             match = FindTargetReturnPoint("/data/machine_vision/apppic/commentAear_2.png");
             if(match.x ==-1 || match.y ==-1)
             {
-                    cout << "寻找编辑栏目\n" << endl;
+                cout << "寻找编辑栏目\n" << endl;
             }
             else
             {
@@ -939,10 +944,10 @@ int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
     {
         cout << "尝试手动打开内容.."<< endl;
 
-          SearchPersonZone(content);
+        SearchPersonZone(content);
         SHORT_DELAY;
     }
-    for ( var = 0; var < 3; ++var) {
+    for ( var = 0; var < 6; ++var) {
         if(SearchShortVelement(opt_point.like,opt_point.comment,opt_point.favour,opt_point.forward,score))
         {
             cout << "短视频四要素图像对比通过.."<< endl;
@@ -955,7 +960,7 @@ int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
         cout << "短视频四要素图像对比失败.."<< endl;
         return -1;
     }
-   // sleep(2);
+    // sleep(2);
     return 0;
 }
 
@@ -1398,7 +1403,7 @@ void APP_TIKTOK::run()
 {
     LONG_DELAY;
     string msg;
-    running =false;
+    //running =false;
     //CONTENT_OPT opt=GIVELIKE_OPT|COMMENT_OPT|FAVOURITE_OPT|FORWARD_OPT;
     while (1)
     {
@@ -1406,47 +1411,92 @@ void APP_TIKTOK::run()
         {
             // 构造函数
             turnon_application(APP_TIKTOK_ENUM);
-            while (1) {
-                if(!running)
+            while (1)
+            {
+                if(LaunchToHomepage())
                 {
-                    if(LaunchToHomepage())
-                    {
-                        INPUT_BACK();
-                        running =true;
-                  //      CURRENT_MOTION= Launched;
-                        break;
-                    }
-                    else
-                    {
-                        //  beatBack(5);
-                        continue;
-                    }
+                    INPUT_BACK();
+                    //      CURRENT_MOTION= Launched;
+                    break;
+                }
+                else
+                {
+                    //  beatBack(5);
+                    continue;
                 }
             }
-            if(COMMAND == SEND_MESSAGE)
+            if(COMMAND == ACTING_COMMAND::SEND_MESSAGE)
             {
                 ContentExtractor extractor;
-                std::string remark111 = "ID:147003193:ID LINK:6.17 复制打开抖音，看看【老炮探案的作品】河北秦皇岛：那些深夜出没的女孩，背后究竟隐藏着什么... https://v.douyin.com/ag52xZSm1tM/ aaA:/ 11/14 W@M.jp:LINK MSG:我还活着呢:MSG";
-                auto [id, link, msg] = extractor.extractContent(remark111);
-                std::cout << "remark1: " << remark111 << std::endl;
-                // 输出提取的结果
-                std::cout << "内容1: " << id << std::endl;
-                std::cout << "内容2: " << link << std::endl;
-                std::cout << "内容3: " << msg << std::endl;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
                 SendMessageToPerson(id,msg);
                 beatBack(10);
                 INPUT_HOME();
                 COMMAND = NONE;
 
             }
+            else if(COMMAND == ACTING_COMMAND::LVIVINGROOM_ONSITE)
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+                SpecifyLivingRoomOnSite(link);
+            }
+            else if(COMMAND == ACTING_COMMAND::CONTENT_OPTRATION)
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+                CONTENT_OPT opt= 0;
+                if (mark.find("点赞") != std::string::npos) {
+                    std::cout << "需要点赞 .. " << std::endl;
+                    opt |=GIVELIKE_OPT;
+                }
+                if (mark.find("评论") != std::string::npos) {
+                    std::cout << "需要评论 .. " << std::endl;
+                    opt |=COMMENT_OPT;
+                }
+                if (mark.find("收藏") != std::string::npos) {
+                    std::cout << "需要收藏 .. " << std::endl;
+                    opt |=FAVOURITE_OPT;
+                }
+                if (mark.find("转发") != std::string::npos) {
+                    std::cout << "需要转发 .. " << std::endl;
+                    opt |=FORWARD_OPT;
+                }
+                SpecifyContentOperation(link,opt,msg);
+                beatBack(10);
+                INPUT_HOME();
+                COMMAND = NONE;
+            }
+            else
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "未知内容: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+
+            }
 
         }
-
-         //SpecifyLivingRoomOnSite("5- #在抖音，记录美好生活#【阿红金铲铲（阿红庄园）】正在直播，来和我一起支持Ta吧。复制下方链接，打开【抖音】，直接观看直播！ https://v.douyin.com/Mczs5gkr-h0/ 7@0.com :3pm");
-        // SpeicyContentOperation("8.25 复制打开抖音，看看【焦太郎的作品】淘汰回放# 意想不到的结局 # 万万没想到 # 情... https://v.douyin.com/--FOVHH3TwQ/ 05/28 t@E.ho lCu:/ ",opt);
-        // sleep(100);
-         cout << "running  <<<< ....." <<endl;
-         sleep(1);
+        cout << "running  <<<< ....."<<COMMAND <<endl;
+        sleep(1);
 #if 0
 
 

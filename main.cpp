@@ -127,12 +127,10 @@ int main() {
                 else
                 {
                     cout << "连接成功....." <<endl;
-
+                    SubscribeServerMsg();
                     break;
                 }
             }
-
-            break;
         }
 
         if(mqtt_msg.newmsg)
@@ -147,18 +145,28 @@ int main() {
                   action.start_time = extract_json_field(mqtt_msg.message, "start_time");
                   action.end_time = extract_json_field(mqtt_msg.message, "end_time");
                   action.remark = extract_json_field(mqtt_msg.message, "remark");
-                  if( action.action == "吃饭")
+                  if( action.action == "TICTOK")
                   {
                      // cout <<"获取命令1：" << action.action << action.sub_action <<endl;
 
-                    if(action.sub_action=="米饭")
+                    if(action.sub_action=="SendMSg")
                       {
                         app.remark =action.remark;
                         app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE;
-
                         cout <<"获取命令2：" << action.action << action.sub_action <<endl;
-
                       }
+                    else if(action.sub_action=="LIVING")
+                    {
+                        app.remark =action.remark;
+                        app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_ONSITE;
+                        cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+                    }
+                    else if(action.sub_action=="CONTENT")
+                     {
+                          app.remark =action.remark;
+                          app.COMMAND = APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION;
+                          cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+                    }
                   }
               }
               else if(messagetype == "process")

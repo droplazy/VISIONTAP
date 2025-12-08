@@ -13,11 +13,10 @@
 
 
 
-
 class ContentExtractor {
 public:
-    // 提取ID、LINK和MSG中的内容
-    std::tuple<std::string, std::string, std::string> extractContent(const std::string& input) {
+    // 提取ID、LINK、MSG和CMD中的内容
+    std::tuple<std::string, std::string, std::string ,std::string> extractContent(const std::string& input) {
         // 查找 ID
         size_t id_start = input.find("ID:") + 3; // 找到 ID: 后面的内容
         size_t id_end = input.find(":ID", id_start); // 找到 ID: 后的结束位置
@@ -32,8 +31,13 @@ public:
         size_t msg_start = input.find("MSG:") + 4; // 找到 MSG: 后面的内容
         size_t msg_end = input.find(":MSG", msg_start); // 找到 MSG: 后的结束位置
         std::string msg = input.substr(msg_start, msg_end - msg_start);
-
-        return std::make_tuple(id, link, msg);
+#if 1
+        // 查找 CMD
+        size_t remark_start = input.find("MARK:") + 4; // 找到 CMD: 后面的内容
+        size_t remark_end = input.find(":MARK", remark_start); // 找到 CMD: 后的结束位置
+        std::string remark = input.substr(remark_start, remark_end - remark_start);
+#endif
+        return std::make_tuple(id, link, msg,remark);
     }
 };
 
@@ -186,7 +190,7 @@ public:
     void FollowMode(string FollowText, int circleTimes);//找直播间互粉
     void ScrollingShortVideos(int clycles);//刷短视频  穿插分享 点赞 评论
     //指令
-    int SpecifyContentOperation(string link,CONTENT_OPT opt,string content);//评论点赞转发推荐 指定作品
+    int SpecifyContentOperation(string link, CONTENT_OPT opt, string comment);//评论点赞转发推荐 指定作品
     int SpecifyLivingRoomOnSite(string link);
 
 
@@ -199,7 +203,7 @@ private:
     void run();
     void scrollingUP();
     ContentType contentType =UNKNOW;
-    bool running;      // 用来控制线程是否继续运行
+   // bool running;      // 用来控制线程是否继续运行
     std::thread t;     // 线程对象
     void scrollingDown();
     bool SearchShortVelement(ad_point &like, ad_point &comment, ad_point &farvour, ad_point &forward,double &finalscore);
