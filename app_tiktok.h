@@ -144,14 +144,6 @@ public:
         ADVERTISEMENT,    // 广告
         LONG_VIDEO        // 长视频
     };
-    // // 枚举类型
-    // enum ACTING_MOTION {
-    //     IDLE,
-    //     SCROLLING,    //刷视频
-    //     LIVINGROOM,   // 看直播
-    //     CONTENT_HOT,      // 点评
-    //     TALKING        // 聊天
-    // };
     enum ACTING_COMMAND {
         NONE,
         LVIVINGROOM_ONSITE,
@@ -163,12 +155,6 @@ public:
         FOLLOW_MODE_RUNNING,
         SCROLLING_MODE
     };
-    // // 枚举类型
-    // enum APP_LAUNCH {
-    //     TURNOFF,
-    //     Launching,
-    //     Launched
-    // };
     typedef int CONTENT_OPT;
     enum  {
         GIVELIKE_OPT   = 1 << 0,  // 0001
@@ -186,9 +172,6 @@ public:
     APP_TIKTOK();
     ~APP_TIKTOK();
 
-
-   // ACTING_MOTION CURRENT_MOTION = IDLE;
-    //APP_LAUNCH     LAUNCH = TURNOFF;
     ACTING_COMMAND COMMAND =NONE;
     string remark;
     //养号
@@ -203,6 +186,10 @@ public:
     bool checkAPKRunning(string apk_name);
     void start();// 启动线程
     void stop();// 停止线程
+
+
+    string act_start_time;   // 开始时间
+    string act_end_time;     // 结束时间
 private:
 
     bool ProhibitFollow_b =false;//账号已经被禁止关注
