@@ -179,6 +179,18 @@ int main() {
                         app.COMMAND = APP_TIKTOK::ACTING_COMMAND::QUIT;
                         cout <<"获取命令2：" << action.action << action.sub_action <<endl;
                     }
+                    else if(action.sub_action=="互粉" )
+                    {
+                        app.remark =action.remark;
+                        app.COMMAND = APP_TIKTOK::ACTING_COMMAND::FOLLOW_MODE;
+                        cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+                    }
+                    else if(action.sub_action=="刷视频" )
+                    {
+                        app.remark =action.remark;
+                        app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SCROLLING_MODE;
+                        cout <<"获取命令2：" << action.action << action.sub_action <<endl;
+                    }
                   }
               }
               else if(messagetype == "process")

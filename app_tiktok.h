@@ -144,28 +144,31 @@ public:
         ADVERTISEMENT,    // 广告
         LONG_VIDEO        // 长视频
     };
-    // 枚举类型
-    enum ACTING_MOTION {
-        IDLE,
-        SCROLLING,    //刷视频
-        LIVINGROOM,   // 看直播
-        CONTENT_HOT,      // 点评
-        TALKING        // 聊天
-    };
+    // // 枚举类型
+    // enum ACTING_MOTION {
+    //     IDLE,
+    //     SCROLLING,    //刷视频
+    //     LIVINGROOM,   // 看直播
+    //     CONTENT_HOT,      // 点评
+    //     TALKING        // 聊天
+    // };
     enum ACTING_COMMAND {
         NONE,
         LVIVINGROOM_ONSITE,
         CONTENT_OPTRATION,
         LVIVINGROOM_BULLET,
         QUIT,
-        SEND_MESSAGE
+        SEND_MESSAGE,
+        FOLLOW_MODE,
+        FOLLOW_MODE_RUNNING,
+        SCROLLING_MODE
     };
-    // 枚举类型
-    enum APP_LAUNCH {
-        TURNOFF,
-        Launching,
-        Launched
-    };
+    // // 枚举类型
+    // enum APP_LAUNCH {
+    //     TURNOFF,
+    //     Launching,
+    //     Launched
+    // };
     typedef int CONTENT_OPT;
     enum  {
         GIVELIKE_OPT   = 1 << 0,  // 0001
@@ -184,12 +187,12 @@ public:
     ~APP_TIKTOK();
 
 
-    ACTING_MOTION CURRENT_MOTION = IDLE;
-    APP_LAUNCH     LAUNCH = TURNOFF;
+   // ACTING_MOTION CURRENT_MOTION = IDLE;
+    //APP_LAUNCH     LAUNCH = TURNOFF;
     ACTING_COMMAND COMMAND =NONE;
     string remark;
     //养号
-    void FollowMode(string FollowText, int circleTimes);//找直播间互粉
+    void FollowMode(string FollowText, string roomname, int circleTimes);//找直播间互粉
     void ScrollingShortVideos(int clycles);//刷短视频  穿插分享 点赞 评论
     //指令
     int SpecifyContentOperation(string link, CONTENT_OPT opt, string comment);//评论点赞转发推荐 指定作品
@@ -201,6 +204,9 @@ public:
     void start();// 启动线程
     void stop();// 停止线程
 private:
+
+    bool ProhibitFollow_b =false;//账号已经被禁止关注
+
     // 线程执行的内容
     void run();
     void scrollingUP();

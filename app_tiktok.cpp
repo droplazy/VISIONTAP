@@ -164,7 +164,7 @@ void APP_TIKTOK::beatBack(int cnt)
 
 }
 
-void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
+void APP_TIKTOK::FollowMode(string FollowText,string roomname,int circleTimes)
 {
 
 
@@ -182,7 +182,7 @@ void APP_TIKTOK::FollowMode(string FollowText,int circleTimes)
     {
         if(!isEnter)
         {
-            ret = EntranceLivingRoom("交朋友直播间");//进入指定直播间
+            ret = EntranceLivingRoom(roomname);//进入指定直播间
             if(ret == -1)
             {
                 cout << "无法进入直播间\n"<< endl;
@@ -396,7 +396,7 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
             {
                 cout <<"给予评论\n" << endl;
 
-                RandomShortVideoOperation(comment,COMMENT_OPT,"👍👍👍👍👍");
+                RandomShortVideoOperation(comment,COMMENT_OPT,"🌹🌹🌹");
                 beatBack(5);
             }
             usleep(500*1000);
@@ -1473,6 +1473,85 @@ void APP_TIKTOK::run()
                 std::cout << "link: " << link << std::endl;
                 std::cout << "msg: " << msg << std::endl;
                 std::cout << "mark: " << mark << std::endl;
+                beatBack(10);
+                INPUT_HOME();
+                COMMAND = NONE;
+                running = false;
+            }
+            else if(COMMAND == ACTING_COMMAND::FOLLOW_MODE)
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+
+                for (int i = 0; i < 3; ++i)
+                {
+                    cout << "检查直播间三要素 >>>......\n" << endl;
+
+                    if( isLivingRoom())
+                    {
+                        cout << "确认完毕 >>>......\n" << endl;
+                        break;
+                    }
+                    else if (i>=2)
+                    {
+                        SpecifyLivingRoomOnSite(link);
+                        break;
+                    }
+                }
+
+                SendBraggerForLivingRoom(msg,false);
+
+                COMMAND =ACTING_COMMAND::FOLLOW_MODE_RUNNING;
+            }
+            else if(COMMAND == ACTING_COMMAND::FOLLOW_MODE_RUNNING)
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    cout << "检查直播间三要素 >>>......\n" << endl;
+
+                    if( isLivingRoom())
+                    {
+                        cout << "确认完毕 >>>......\n" << endl;
+                        break;
+                    }
+                    else if (i>=2)
+                    {
+                        COMMAND =ACTING_COMMAND::FOLLOW_MODE;
+                        break;
+                    }
+                }
+                if(!ProhibitFollow_b)
+                {
+                    if(RandomFollowUser() == -2)
+                    {
+                       COMMAND =ACTING_COMMAND::FOLLOW_MODE;
+                    }
+                    else if(RandomFollowUser() == -3)
+                    {
+                        ProhibitFollow_b =true;
+                        beatBack(10);
+                        INPUT_HOME();
+                        COMMAND = NONE;
+                        running = false;
+                    }
+                }
+                SendBraggerForLivingRoom(msg,true);
+            }
+            else if(COMMAND == ACTING_COMMAND::SCROLLING_MODE)
+            {
+                ContentExtractor extractor;
+                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
+                std::cout << "remark1: " << this->remark << std::endl;
+                std::cout << "id: " << id << std::endl;
+                std::cout << "link: " << link << std::endl;
+                std::cout << "msg: " << msg << std::endl;
+                std::cout << "mark: " << mark << std::endl;
+                ScrollingShortVideos(9999);
                 beatBack(10);
                 INPUT_HOME();
                 COMMAND = NONE;
