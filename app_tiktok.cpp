@@ -1452,6 +1452,8 @@ void APP_TIKTOK::run()
         }
         else if(COMMAND != NONE)
         {
+            CheckUpgrade();
+
             if(COMMAND == ACTING_COMMAND::SEND_MESSAGE)
             {
                 ContentExtractor extractor;
@@ -1513,7 +1515,8 @@ void APP_TIKTOK::run()
             }
             else if(COMMAND == ACTING_COMMAND::FOLLOW_MODE_RUNNING)
             {
-                for (int i = 0; i < 3; ++i)
+                int i =0;
+                for (i = 0; i < 3; ++i)
                 {
                     cout << "检查直播间三要素 >>>......\n" << endl;
 
@@ -1522,12 +1525,15 @@ void APP_TIKTOK::run()
                         cout << "确认完毕 >>>......\n" << endl;
                         break;
                     }
-                    else if (i>=2)
-                    {
-                        COMMAND =ACTING_COMMAND::FOLLOW_MODE;
-                        break;
-                    }
                 }
+
+                if (i>=2)
+                {
+                    COMMAND =ACTING_COMMAND::FOLLOW_MODE;
+                    continue;
+                }
+
+
                 if(!ProhibitFollow_b)
                 {
                     if(RandomFollowUser() == -2)
@@ -1554,11 +1560,11 @@ void APP_TIKTOK::run()
                 std::cout << "link: " << link << std::endl;
                 std::cout << "msg: " << msg << std::endl;
                 std::cout << "mark: " << mark << std::endl;
-                ScrollingShortVideos(9999);
-                beatBack(10);
+                ScrollingShortVideos(1);
+                /*beatBack(10);
                 INPUT_HOME();
                 COMMAND = NONE;
-                running = false;
+                running = false;*/
             }
             else if(COMMAND == ACTING_COMMAND::LVIVINGROOM_ONSITE)
             {
@@ -1647,6 +1653,7 @@ void APP_TIKTOK::run()
                 }
                 beatBack(10);
                 INPUT_HOME();
+                COMMAND = NONE;
                 running = false;
             }
             else
