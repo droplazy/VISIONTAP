@@ -132,6 +132,7 @@ public:
 #define TIKTOK_CONTENT_SEARCHPAGE_CV    "/data/machine_vision/apppic/searchpage.png"   //.png
 #define TIKTOK_CONTENT_SEARCHPFILLED_CV    "/data/machine_vision/apppic/searchfilled.png"   //.png
 #define TIKTOK_CONTENT_SHAREDLINK_CV    "/data/machine_vision/apppic/opensharedcontent.png"   //.png
+#define TIKTOK_CONTENT_FIRSTLAUNCH_CV    "/data/machine_vision/apppic/firstlaunch.png"   //.png
 
 // 类声明
 class APP_TIKTOK {
@@ -223,6 +224,10 @@ private:
     int enterSpecifyLivingrom(string content);
     std::tuple<std::string, std::string, std::string> extractContent(const std::string &input);
     void turnoffAPP();
+    void CheckFirstLaunch();
+    bool checklogin();
+    bool isLogin =true;
+
 };
 
 #endif // APP_TIKTOK_H

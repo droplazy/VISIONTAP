@@ -51,6 +51,22 @@ typedef enum {
     APP_KUAISHOU_ENUM = 9,        // 快手
     APP_BILIBILI_ENUM = 10        // 哔哩哔哩
 } AppType;
+
+typedef enum {
+    IDLE =0,
+    APP_TIKTOK = 1,          // TikTok
+    APP_WECHAT = 2,          // WeChat
+    APP_REDBOOK = 3,         // RedBook
+    APP_MEITUAN = 4,         // Meituan
+    APP_DAZHONGDIANPING = 5, // 大众点评
+    APP_BAIDU = 6,           // Baidu
+    APP_ALIPAY = 7,          // Alipay
+    APP_QQ = 8,              // QQ
+    APP_KUAISHOU = 9,        // 快手
+    APP_BILIBILI = 10        // 哔哩哔哩
+} RUNNUNG_APP;
+
+
 typedef struct {
     int x;
     int y;

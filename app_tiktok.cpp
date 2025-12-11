@@ -92,6 +92,25 @@ void APP_TIKTOK::ContentExtraction()
 
 }
 
+void APP_TIKTOK::CheckFirstLaunch()
+{
+    snap_screen();
+
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread(TIKTOK_CONTENT_FIRSTLAUNCH_CV); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+    if(score >0.8)
+    {
+        cout << "第一次启动该应用  或者应用已经省级\n"<< endl;
+        match.x +=145;
+        match.y +=280;
+
+        INPUT_TAP(match);
+    }
+
+    return ;
+}
 void APP_TIKTOK::CheckUpgrade()
 {
     snap_screen();
@@ -107,6 +126,34 @@ void APP_TIKTOK::CheckUpgrade()
     }
 
     return ;
+}
+bool APP_TIKTOK::checklogin()
+{
+    snap_screen();
+
+    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
+    cv::Mat templateImage = cv::imread("/data/machine_vision/apppic/tiktoklogin.png"); // 读取模板图像
+    double score;
+    ad_point match = FindPicTarget(targetImage, templateImage, score);
+    if(score >0.8)
+    {
+        cout << "账号需要登陆\n"<< endl;
+      //  INPUT_TAP(match);
+        return true ;
+    }
+    else
+    {
+        cv::Mat templateImage = cv::imread("/data/machine_vision/apppic/login2.png"); // 读取模板图像
+        double score;
+        ad_point match = FindPicTarget(targetImage, templateImage, score);
+        if(score >0.8)
+        {
+            cout << "账号需要登陆\n"<< endl;
+            //  INPUT_TAP(match);
+            return true ;
+        }
+    }
+    return false;
 }
 
 bool APP_TIKTOK::ShowMyHomepage()
@@ -1379,7 +1426,7 @@ bool APP_TIKTOK::isLivingRoom()
         eleGet ++;
 
 
-    if(eleGet >=2)
+    if(eleGet >=3)
         ret=true;
     else
         ret = false;
@@ -1396,7 +1443,6 @@ bool APP_TIKTOK::LaunchToHomepage()
     }
     else
     {
-        CheckUpgrade();
         bool isEnterHomePage =false;
         int var=0;
         for ( var = 0; var < 10; ++var)
@@ -1405,6 +1451,13 @@ bool APP_TIKTOK::LaunchToHomepage()
             if(isEnterHomePage)
             {
                 break;
+            }
+            CheckFirstLaunch();
+            CheckUpgrade();
+            if(checklogin())
+            {
+                isLogin = false;
+                return false;
             }
             usleep(500*1000);
 
@@ -1431,11 +1484,22 @@ void APP_TIKTOK::run()
     //CONTENT_OPT opt=GIVELIKE_OPT|COMMENT_OPT|FAVOURITE_OPT|FORWARD_OPT;
     while (1)
     {
+        if(!isLogin)
+        {
+            cout << "账号需要登陆 ...." << endl;
+
+            sleep(1);
+            continue;
+        }
+
+
+
         if(COMMAND != NONE && running ==false)
         {
                 // 构造函数
                 turnon_application(APP_TIKTOK_ENUM);
-                while (1)
+                int var =0;
+                for (var = 0; var < 5; ++var)
                 {
                     if(LaunchToHomepage())
                     {
@@ -1443,11 +1507,10 @@ void APP_TIKTOK::run()
                         running =true;
                         break;
                     }
-                    else
-                    {
-                        //  beatBack(5);
-                        continue;
-                    }
+                }
+                if(var >=4)
+                {
+                    cout << "应用启动异常" <<endl;
                 }
         }
         else if(COMMAND != NONE)

@@ -22,6 +22,10 @@ mqtt_config_t config = {
     .qos = 1
 };
 DeviceData devicedata ;
+vector<Dev_Action> actions;
+RUNNUNG_APP STATUS = IDLE;
+string processId;
+
 int isConnected =0;
 
 // 初始化 Mosquitto 并连接
@@ -109,14 +113,75 @@ void StopAppActivety(class APP_TIKTOK &app, Dev_Action &action)
 
 }
 
+// 简单的提取字符串函数
+string extractString(const string& json, const string& key) {
+    size_t keyPos = json.find("\"" + key + "\":");
+    if (keyPos == string::npos) return ""; // 如果没找到，返回空字符串
+
+    size_t start = json.find("\"", keyPos + key.size() + 3); // 跳过 `key": " 的部分
+    if (start == string::npos) return "";
+
+    size_t end = json.find("\"", start + 1); // 找到结束的引号位置
+    if (end == string::npos) return "";
+
+    return json.substr(start + 1, end - start - 1); // 提取字符串
+}
+
+// 解析 data 数组中的每个对象
+void parseDataArray(const string& json, vector<Dev_Action>& actions, string& processId) {
+    // 提取 processId
+    processId = extractString(json, "processId");
+
+    size_t pos = json.find("\"data\":");
+    if (pos == string::npos) return; // 没有找到 data 数组
+
+    size_t arrayStart = json.find("[", pos); // 查找 data 数组的起始位置
+    size_t arrayEnd = json.find("]", arrayStart); // 查找 data 数组的结束位置
+    if (arrayStart == string::npos || arrayEnd == string::npos) return;
+
+    string dataArray = json.substr(arrayStart + 1, arrayEnd - arrayStart - 1); // 提取 data 数组
+
+    size_t objStart = 0;
+    while ((objStart = dataArray.find("{", objStart)) != string::npos) { // 遍历每个对象
+        size_t objEnd = dataArray.find("}", objStart); // 查找对象的结束位置
+        if (objEnd == string::npos) break;
+
+        string obj = dataArray.substr(objStart, objEnd - objStart + 1); // 提取当前对象
+
+        // 将当前对象的字段填充到 Dev_Action 结构体
+        Dev_Action action;
+        action.action = extractString(obj, "action");
+        action.sub_action = extractString(obj, "sub_action");
+        action.start_time = extractString(obj, "start_time");
+        action.end_time = extractString(obj, "end_time");
+        action.remark = extractString(obj, "remark");
+
+        actions.push_back(action); // 将填充好的 action 对象加入到容器中
+
+        objStart = objEnd + 1; // 继续查找下一个对象
+    }
+}
+
+
+
+// 打印所有动作
+void printActions(const vector<Dev_Action>& actions) {
+    for (size_t i = 0; i < actions.size(); ++i) {
+        cout << "Action " << i + 1 << ":" << endl;
+        cout << "  action: " << actions[i].action << endl;
+        cout << "  sub_action: " << actions[i].sub_action << endl;
+        cout << "  start_time: " << actions[i].start_time << endl;
+        cout << "  end_time: " << actions[i].end_time << endl;
+        cout << "  remark: " << actions[i].remark << endl;
+        cout << "  isRunning: " << (actions[i].isRunning ? "true" : "false") << endl;
+        cout << "-------------------------" << endl;
+    }
+}
 
 int disposeMessageTickTOk(class APP_TIKTOK &app, Dev_Action &action)
 {
     int retCode = 0; // 0=未处理，1=成功，负值=错误
-
     try {
-        if (action.action == "抖音")
-        {
             if (action.sub_action == "私信")
             {
                 app.remark = action.remark;
@@ -171,12 +236,6 @@ int disposeMessageTickTOk(class APP_TIKTOK &app, Dev_Action &action)
                 std::cerr << "未知的sub_action: " << action.sub_action << std::endl;
                 retCode = -2;
             }
-        }
-        else
-        {
-            std::cerr << "未知的action: " << action.action << std::endl;
-            retCode = -1;
-        }
     }
     catch (const std::exception& e) {
         std::cerr << "disposeMessageTickTOk异常: " << e.what() << std::endl;
@@ -213,12 +272,14 @@ bool ClearFinishedCommand(Dev_Action & action, class APP_TIKTOK &app_tiktok)
     }
     return false;;
 }
-
+void clearActions(vector<Dev_Action>& actions) {
+    actions.clear(); // 清空所有元素
+}
 int main() {
 #if 1
-    vector<Dev_Action> actions;
 
     class APP_TIKTOK app_tiktok;
+
     app_tiktok.start();
     getdeviceInfo();
     int ret = mqtt_connect(&mosq, &config);
@@ -276,11 +337,15 @@ int main() {
                 action.end_time = extract_json_field(mqtt_msg.message, "end_time");
                 action.remark = extract_json_field(mqtt_msg.message, "remark");
                 action.isRunning=false;
+                action.isCommand = true;
                 actions.push_back(action);
             }
             else if(messagetype == "process")
             {
+                clearActions(actions);
 
+                parseDataArray(mqtt_msg.message, actions, processId);
+                printActions(actions); //
             }
             else
             {
@@ -289,8 +354,10 @@ int main() {
             mqtt_msg.newmsg=false;
             strcpy(mqtt_msg.message,"");
         }
+#if 1
 
-        for (auto it = actions.begin(); it != actions.end(); ) {
+        for (auto it = actions.begin(); it != actions.end(); )
+        {
             auto& action = *it;
             int diff = compareTime(action.end_time);
             if(diff >= 0&& action.isRunning)//大于结束时间且已经开始了停止活动
@@ -303,6 +370,7 @@ int main() {
                 disposeMessageTickTOk(app_tiktok, tmpaction);
                 // 删除当前元素
                 it = actions.erase(it);
+                STATUS= IDLE;
                 continue;
             }
             else if (diff >= 0&& !action.isRunning)
@@ -317,16 +385,41 @@ int main() {
             diff = compareTime(action.start_time);
             if(diff >= 0 && !action.isRunning) //大于开始时间但是还没有开始直接启动
             {
-                std::cout << "开始活动:"<<action.action << action.sub_action<< std::endl;
-                std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+                if(STATUS== IDLE||(action.isCommand && STATUS== APP_TIKTOK&& action.sub_action=="弹幕") )
+                {
+                    std::cout << "开始活动:"<<action.action << action.sub_action<< std::endl;
+                    std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
 
-                //Dev_Action tmpaction = action;
-                action.isRunning =true;
-                disposeMessageTickTOk(app_tiktok, action);
+                    //Dev_Action tmpaction = action;
+                    action.isRunning =true;
+                    if (action.action == "抖音")
+                    {
+                        disposeMessageTickTOk(app_tiktok, action);
+                        STATUS =APP_TIKTOK;
+                    }
+                    else if (action.action == "红牛")
+                    {
+                        STATUS =APP_WECHAT;
+                    }
+                }
+                else if(action.isCommand && STATUS!= IDLE)//todo  以后可能有BUG
+                {
+
+                    // cout <<"新命令开始：" << action.action << action.sub_action;
+                    // cout <<"先退出" << action.action << action.sub_action;
+
+                    if(STATUS == APP_TIKTOK)
+                    {
+                        app_tiktok.COMMAND =APP_TIKTOK::QUIT;
+                    }
+
+                }
             }
 
             if(ClearFinishedCommand(action, app_tiktok))
             {
+                if(action.sub_action!="弹幕")
+                STATUS= IDLE;
                 // 删除当前元素
                 it = actions.erase(it);
                 continue;
@@ -334,7 +427,7 @@ int main() {
             //else
                 ++it;
         }
-
+#endif
         // 获取当前时间
         auto current_time = std::chrono::steady_clock::now();
 

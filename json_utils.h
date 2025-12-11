@@ -66,6 +66,7 @@ struct Dev_Action {
     string end_time;     // 结束时间
     string remark;     // 结束时间
     bool isRunning;
+    bool isCommand;
 };
 struct DeviceData {
    //  string status;               // 设备状态（在线/离线）
