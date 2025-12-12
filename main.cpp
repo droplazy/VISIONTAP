@@ -110,40 +110,56 @@ bool ClearFinishedCommand(Dev_Action & action, class APP_TIKTOK &app_tiktok)
 }
 
 
+void printSubActions(const vector<Dev_Action>& actions_vector) {
+    for (const auto& action : actions_vector) {
+        cout << action.sub_action << endl;  // 打印每个 Dev_Action 的 sub_action
+        cout << action.start_time << endl;  // 打印每个 Dev_Action 的 sub_action
+        cout << action.end_time << endl;  // 打印每个 Dev_Action 的 sub_action
 
+    }
+}
 
 int main()
 {
     DeviceData devicedata ;
     vector<Dev_Action> actions_vector;
+    actions_vector.reserve(24);
     string processId;
     MqttThread mqttClient("192.168.10.103", 1883, "username", "password");
     mqttClient.start();
     string mqtt_topic;
     string mqtt_message;
-    struct Dev_Action *currentAct=nullptr;
-
+    struct Dev_Action *currentAct = nullptr;
+    bool aaa =false;
     // 主循环：任务调度
     while (1)
     {
         if(mqttClient.isMessageComing(mqtt_message,mqtt_topic))
         {
          //    std::cout << "Message received on topic [" << mqtt_topic << "]: " << mqtt_message << std::endl;
+          ParseMqttMassage(mqtt_message,actions_vector);
 
-            ParseMqttMassage(mqtt_message,actions_vector);
         }
 
-        TraverActionsVector(actions_vector,currentAct);
+        if(currentAct == nullptr)
+        {
+            currentAct  =  TraverActionsVector(actions_vector);
+        }
+        else if(currentAct != nullptr)
+        {
+            SchedulingProcess(currentAct);
+           cout << "当前活动:" << currentAct->sub_action <<endl;
 
-        if(currentAct!= nullptr)
-        SchedulingProcess(currentAct);
-        // else
-        // {
-        //     cout << "currentAct 为空" <<endl;
-        // }
-        pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
+         //  currentAct->print();
+        }
+        else
+        {
+            cout << "没有活动" <<endl;
+        }
+
+         printSubActions(actions_vector);
+         pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
         sleep(1);
-     //   cout << "debug ..." <<endl;
     }
 
     mqttClient.stop();
@@ -152,6 +168,17 @@ int main()
 }
 
 #if 0
+        TraverActionsVector(actions_vector,currentAct);
+
+        if (currentAct != nullptr) {
+          SchedulingProcess(currentAct);
+            std::cout << "当前活动：" << currentAct.sub_action <<  std::endl;
+          //  currentActprint();
+
+        } else {
+            std::cout << "当前没有活动" << std::endl;
+        }
+      //
         if(mqtt_msg.newmsg)
         {
 

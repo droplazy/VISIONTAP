@@ -405,30 +405,47 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
     }
 
 }
-void TraverActionsVector(vector<Dev_Action>& actions, Dev_Action*& cur)
+Dev_Action* TraverActionsVector(vector<Dev_Action>& actions)
 {
-    for (auto it = actions.begin(); it != actions.end(); )
+    if (actions.empty())  // 先检查 actions 是否为空
+    {
+        std::cerr << "错误：活动列表为空!" << std::endl;
+        return nullptr;
+    }
+
+    for (auto it = actions.begin(); it != actions.end();)
     {
         auto& action = *it;
 
-        if (compareTime(action.end_time) >= 0 && !action.isRunning)
-        {
-            std::cout << "无效活动:" << action.action << action.sub_action << std::endl;
-            std::cout << "开始时间:" << action.start_time << " 停止时间:" << action.end_time << std::endl;
-            it = actions.erase(it);  // 删除元素后，it自动指向下一个元素
+        try {
+            // 如果活动已结束且未运行，删除活动
+            if (compareTime(action.end_time) >= 0 && !action.isRunning)
+            {
+                std::cout << "活动已经过期:" << action.action << action.sub_action << std::endl;
+                std::cout << "开始时间:" << action.start_time << " 停止时间:" << action.end_time << std::endl;
+
+                it = actions.erase(it);  // 删除元素后，it 自动指向下一个元素
+            }
+            else if (compareTime(action.start_time) >= 0 && !action.isRunning)  // 如果活动开始时间到且没有正在进行的活动，则启动
+            {
+                std::cout << "准备启动活动:" << action.action << action.sub_action << std::endl;
+                return &action;  // 返回指向活动的指针
+            }
+            else
+            {
+                ++it;  // 默认遍历，跳过没有删除或启动的活动
+            }
         }
-        else if (compareTime(action.start_time) >= 0 && !action.isRunning && cur== nullptr)  // 大于开始时间但是还没有开始直接启动
-        {
-            cur = &action;
-            cout << "准备启动活动:" << cur->action << cur->sub_action << endl;
-            ++it;  // 向下一个元素移动迭代器
-        }
-        else
-        {
-            ++it;  // 保持默认遍历，跳过没有删除或启动的活动
+        catch (const std::exception& e) {
+            std::cerr << "错误：处理活动时发生异常：" << e.what() << std::endl;
+            ++it;  // 即使发生异常，也继续遍历
         }
     }
+
+    return nullptr;  // 如果没有找到需要启动的活动，返回 nullptr
 }
+
+
 
 
 void pollAndRemoveCompletedActions(vector<Dev_Action>& actions)
