@@ -154,7 +154,8 @@ public:
         SEND_MESSAGE,
         FOLLOW_MODE,
         FOLLOW_MODE_RUNNING,
-        SCROLLING_MODE
+        SCROLLING_MODE,
+        FOLLOW_SOMEONE
     };
     typedef int CONTENT_OPT;
     enum  {

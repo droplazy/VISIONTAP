@@ -15,7 +15,7 @@
 
 struct mosquitto *mosq = NULL;
 mqtt_config_t config = {
-    .host = "test.mosquitto.org", // 替换为你自己的 MQTT 服务器地址
+    .host = "192.168.10.103", // 替换为你自己的 MQTT 服务器地址
     .port = 1883,
     .username = NULL,  // 如果有用户名，设置此字段
     .password = NULL,  // 如果有密码，设置此字段
@@ -33,10 +33,10 @@ int isConnected =0;
 
 void getdeviceInfo()
 {
-    struct Action current = { "吃饭", "2025-10-25T12:00:12Z", "2025-10-25T13:13:22Z" };
-    struct Action next = { "洗澡", "2025-10-25T14:00:12Z", "2025-10-25T14:13:22Z" };
-    devicedata.current_action = current;
-    devicedata.next_action = next;
+    //   struct Action current = { "吃饭", "2025-10-25T12:00:12Z", "2025-10-25T13:13:22Z" };
+    //   struct Action next = { "洗澡", "2025-10-25T14:00:12Z", "2025-10-25T14:13:22Z" };
+    //   devicedata.current_action = current;
+    //   devicedata.next_action = next;
     NetworkInfo netinfo =getNetworkInfo("wlan0");
     devicedata.ip = netinfo.ip;
     devicedata.mac = netinfo.mac;
@@ -182,60 +182,67 @@ int disposeMessageTickTOk(class APP_TIKTOK &app, Dev_Action &action)
 {
     int retCode = 0; // 0=未处理，1=成功，负值=错误
     try {
-            if (action.sub_action == "私信")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else if (action.sub_action == "直播")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_ONSITE;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else if (action.sub_action == "评论")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else if (action.sub_action == "弹幕")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_BULLET;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else if (action.sub_action == "退出")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::QUIT;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else if (action.sub_action == "互粉")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::FOLLOW_MODE;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else if (action.sub_action == "刷视频")
-            {
-                app.remark = action.remark;
-                app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SCROLLING_MODE;
-                cout << "获取命令2：" << action.action << action.sub_action << endl;
-                retCode = 1;
-            }
-            else
-            {
-                std::cerr << "未知的sub_action: " << action.sub_action << std::endl;
-                retCode = -2;
-            }
+        if (action.sub_action == "私信")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "直播")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_ONSITE;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "评论")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "关注")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::FOLLOW_SOMEONE;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "弹幕")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_BULLET;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "退出")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::QUIT;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "互粉")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::FOLLOW_MODE;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else if (action.sub_action == "刷视频")
+        {
+            app.remark = action.remark;
+            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SCROLLING_MODE;
+            cout << "获取命令2：" << action.action << action.sub_action << endl;
+            retCode = 1;
+        }
+        else
+        {
+            std::cerr << "未知的sub_action: " << action.sub_action << std::endl;
+            retCode = -2;
+        }
     }
     catch (const std::exception& e) {
         std::cerr << "disposeMessageTickTOk异常: " << e.what() << std::endl;
@@ -279,6 +286,9 @@ int main() {
 #if 1
 
     class APP_TIKTOK app_tiktok;
+    devicedata.current_action.name=   "待命";
+    devicedata.current_action.start_time= "00:00:00";
+    devicedata.current_action.end_time=   "00:00:00";
 
     app_tiktok.start();
     getdeviceInfo();
@@ -318,6 +328,8 @@ int main() {
                 else
                 {
                     cout << "连接成功....." <<endl;
+                    // 设置消息回调
+                    mqtt_set_message_callback(mosq);
                     SubscribeServerMsg();
                     break;
                 }
@@ -389,6 +401,9 @@ int main() {
                 {
                     std::cout << "开始活动:"<<action.action << action.sub_action<< std::endl;
                     std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+                    devicedata.current_action.name=   action.action;
+                    devicedata.current_action.start_time=  action.start_time;
+                    devicedata.current_action.end_time=   action.end_time;
 
                     //Dev_Action tmpaction = action;
                     action.isRunning =true;
@@ -419,13 +434,16 @@ int main() {
             if(ClearFinishedCommand(action, app_tiktok))
             {
                 if(action.sub_action!="弹幕")
-                STATUS= IDLE;
+                    STATUS= IDLE;
                 // 删除当前元素
                 it = actions.erase(it);
+                devicedata.current_action.name=   "待命";
+                devicedata.current_action.start_time=  "00:00:00";
+                devicedata.current_action.end_time=   "00:00:00";
                 continue;
             }
             //else
-                ++it;
+            ++it;
         }
 #endif
         // 获取当前时间

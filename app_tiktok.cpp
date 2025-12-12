@@ -324,7 +324,7 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
 {
     snap_screen();
     cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
-    cv::Mat simple =  cropImage(targetImage,973,188,41,250);//190
+    cv::Mat simple =  cropImage(targetImage,973,130,41,300);//190
     double score;
     cv::Mat templateImage = cv::imread("/data/machine_vision/apppic/shortvideo_ele.png");
     ad_point match = FindPicTargetWithMask(simple, templateImage,templateImage, score);
@@ -355,10 +355,10 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
                 comment.x =  match.x+15+973;
                 farvour.x =  match.x+15+973;
                 forward.x =  match.x+15+973;
-                like.y    =  match.y+14+188;
-                comment.y =  match.y+73+188;
-                farvour.y =  match.y+135+188;
-                forward.y =  match.y+189+188;
+                like.y    =  match.y+14+130;
+                comment.y =  match.y+73+130;
+                farvour.y =  match.y+135+130;
+                forward.y =  match.y+189+130;
                 finalscore =score;
             }
 
@@ -370,10 +370,10 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
             comment.x =  match.x+15+973;
             farvour.x =  match.x+15+973;
             forward.x =  match.x+15+973;
-            like.y    =  match.y+11+188;
-            comment.y =  match.y+69+188;
-            farvour.y =  match.y+131+188;
-            forward.y =  match.y+168+188;
+            like.y    =  match.y+11+130;
+            comment.y =  match.y+69+130;
+            farvour.y =  match.y+131+130;
+            forward.y =  match.y+168+130;
             finalscore =score;
 
         }
@@ -986,9 +986,6 @@ int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
     double score;
     ad_point match={0};
     // ad_point like ={0,0};
-    // ad_point comment ={0,0};
-    // ad_point farvour ={0,0};
-    // ad_point forward ={0,0};
     int var =0;
     for ( var = 0; var < 3; ++var)
     {
@@ -1000,7 +997,7 @@ int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
             turnon_application(APP_TIKTOK_ENUM);
             SHORT_DELAY;
             cout << "未能打开链接  重试.."<< endl;
-
+            CopyTextFormSys(content);
         }
         else
         {
@@ -1573,7 +1570,8 @@ void APP_TIKTOK::run()
                 }
 
                 SendBraggerForLivingRoom(msg,false);
-
+                ad_point tap_cli ={612,20};//空点击
+                INPUT_TAP(tap_cli);
                 COMMAND =ACTING_COMMAND::FOLLOW_MODE_RUNNING;
             }
             else if(COMMAND == ACTING_COMMAND::FOLLOW_MODE_RUNNING)
@@ -1732,8 +1730,8 @@ void APP_TIKTOK::run()
         }
 
 
-        cout << "running  <<<< ....."<<COMMAND <<endl;
-        sleep(1);
+       // cout << "running  <<<< ....."<<COMMAND <<endl;
+       // sleep(1);
 #if 0
 
 
