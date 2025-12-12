@@ -62,8 +62,8 @@ add_executable(cv_exe
     pulic_def.h
     screen_tap.h
     opencv_utils.h
-    mqtt_utils.h
-    mqtt_utils.cpp
+    mqtt_thread.h
+    mqtt_thread.cpp
     json_utils.h
     json_utils.cpp
 )

@@ -65,8 +65,26 @@ struct Dev_Action {
     string start_time;   // 开始时间
     string end_time;     // 结束时间
     string remark;     // 结束时间
-    bool isRunning;
-    bool isCommand;
+    bool isRunning=false;
+    bool isCommand=false;
+    bool Forcestop =false;
+    bool compeleted =false;
+    bool quitting =false;
+
+    string processId;     // 结束时间
+    // 打印所有成员变量的函数
+    void print() const {
+        cout << "Action: " << action << endl;
+        cout << "Sub Action: " << sub_action << endl;
+        cout << "Start Time: " << start_time << endl;
+        cout << "End Time: " << end_time << endl;
+        cout << "Remark: " << remark << endl;
+        cout << "Is Running: " << (isRunning ? "true" : "false") << endl;
+        cout << "Is Command: " << (isCommand ? "true" : "false") << endl;
+        cout << "Forcestop: " << (Forcestop ? "true" : "false") << endl;
+        cout << "Completed: " << (compeleted ? "true" : "false") << endl;
+        cout << "Process ID: " << processId << endl;
+    }
 };
 struct DeviceData {
    //  string status;               // 设备状态（在线/离线）
@@ -106,9 +124,16 @@ struct HeartbeatMessage {
  std::string getUptime() ;
  string check_message_type(const string& json_data);
  string extract_json_field(const string& json_data, const string& field_name);
-
-
-
+ std::string GetdeviceInfoAndresJson();
+ void printActions(const vector<Dev_Action>& actions);
+ void parseDataArray(const string& json, vector<Dev_Action>& actions);
+ string extractString(const string& json, const string& key);
+ void clearActions(vector<Dev_Action>& actions);
+ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions);
+ Dev_Action * TraverActionsVector(vector<Dev_Action>& actions);
+ void pollAndRemoveCompletedActions(vector<Dev_Action>& actions);
+ int compareTime(const std::string& target);
+ void SchedulingProcess(struct Dev_Action *currentAct);
 
 
 #endif // OPENCV_UTILS_H

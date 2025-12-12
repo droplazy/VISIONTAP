@@ -71,6 +71,13 @@ typedef struct {
     int x;
     int y;
 } ad_point;
+
+#define STANDBY_ACT "待命"
+#define TIKTOK_ACT "抖音"
+
+#define TIKTOK_SUBACT_BURG "弹幕"
+
+
 #define SHORT_DELAY usleep(1000*1000);
 #define LONG_DELAY usleep(3000*1000);
 #define APPUI_XY 51

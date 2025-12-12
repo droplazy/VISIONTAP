@@ -136,6 +136,7 @@ std::string getUtcTimestamp()
     auto now = system_clock::now();
     std::time_t t = system_clock::to_time_t(now);
 
+        t += 8 * 3600;
     // 转成 UTC tm
     std::tm tm_utc{};
 #if defined(_WIN32)
@@ -256,3 +257,272 @@ string extract_json_field(const string& json_data, const string& field_name) {
     }
     return json_data.substr(pos + 1, end_pos - pos - 1);
 }
+std::string GetdeviceInfoAndresJson()//TODO
+{
+    DeviceData devicedata;
+    NetworkInfo netinfo =getNetworkInfo("wlan0");
+    devicedata.ip = netinfo.ip;
+    devicedata.mac = netinfo.mac;
+    devicedata.totalTraffic = netinfo.formatTraffic();
+    devicedata.error_flag= 0;
+    devicedata.temperature= readTemperature();
+    devicedata.serial_number = parseSerialNumber();
+    devicedata.verification_code = "GXFC";
+    devicedata.boot_time = getUptime();
+    devicedata.usedProcess = "xxxxx";
+    devicedata.ProcessID = "1";
+    HeartbeatMessage heartbeat;
+    heartbeat.timestamp =getUtcTimestamp();
+    heartbeat.messageType="heart";
+    heartbeat.data =devicedata;
+
+    return generateHeartbeatJson(heartbeat);
+}
+int compareTime(const std::string& target)
+{
+    auto now = std::chrono::system_clock::now();
+    auto utc = std::chrono::system_clock::to_time_t(now);
+    auto tm = *std::gmtime(&utc);
+
+    tm.tm_hour += 8;  // UTC+8 = 北京时间
+    std::mktime(&tm);
+
+    int curSec = tm.tm_hour*3600 + tm.tm_min*60 + tm.tm_sec;
+
+    int h, m, s;
+    char c;
+    std::stringstream(target) >> h >> c >> m >> c >> s;
+
+    return curSec - (h*3600 + m*60 + s);
+}
+void StopAppActivety(class APP_TIKTOK &app, Dev_Action &action)
+{
+    int retCode = 0; // 0=未处理，1=成功，负值=错误
+
+}
+
+// 简单的提取字符串函数
+string extractString(const string& json, const string& key) {
+    size_t keyPos = json.find("\"" + key + "\":");
+    if (keyPos == string::npos) return ""; // 如果没找到，返回空字符串
+
+    size_t start = json.find("\"", keyPos + key.size() + 3); // 跳过 `key": " 的部分
+    if (start == string::npos) return "";
+
+    size_t end = json.find("\"", start + 1); // 找到结束的引号位置
+    if (end == string::npos) return "";
+
+    return json.substr(start + 1, end - start - 1); // 提取字符串
+}
+
+// 解析 data 数组中的每个对象
+void parseDataArray(const string& json, vector<Dev_Action>& actions) {
+    // 提取 processId
+    string processId = extractString(json, "processId");
+
+    size_t pos = json.find("\"data\":");
+    if (pos == string::npos) return; // 没有找到 data 数组
+
+    size_t arrayStart = json.find("[", pos); // 查找 data 数组的起始位置
+    size_t arrayEnd = json.find("]", arrayStart); // 查找 data 数组的结束位置
+    if (arrayStart == string::npos || arrayEnd == string::npos) return;
+
+    string dataArray = json.substr(arrayStart + 1, arrayEnd - arrayStart - 1); // 提取 data 数组
+
+    size_t objStart = 0;
+    while ((objStart = dataArray.find("{", objStart)) != string::npos) { // 遍历每个对象
+        size_t objEnd = dataArray.find("}", objStart); // 查找对象的结束位置
+        if (objEnd == string::npos) break;
+
+        string obj = dataArray.substr(objStart, objEnd - objStart + 1); // 提取当前对象
+
+        // 将当前对象的字段填充到 Dev_Action 结构体
+        Dev_Action action;
+        action.action = extractString(obj, "action");
+        action.sub_action = extractString(obj, "sub_action");
+        action.start_time = extractString(obj, "start_time");
+        action.end_time = extractString(obj, "end_time");
+        action.remark = extractString(obj, "remark");
+        action.processId = processId;
+        actions.push_back(action); // 将填充好的 action 对象加入到容器中
+
+        objStart = objEnd + 1; // 继续查找下一个对象
+    }
+}
+
+
+
+// 打印所有动作
+void printActions(const vector<Dev_Action>& actions) {
+    for (size_t i = 0; i < actions.size(); ++i) {
+        cout << "Action " << i + 1 << ":" << endl;
+        cout << "  action: " << actions[i].action << endl;
+        cout << "  sub_action: " << actions[i].sub_action << endl;
+        cout << "  start_time: " << actions[i].start_time << endl;
+        cout << "  end_time: " << actions[i].end_time << endl;
+        cout << "  remark: " << actions[i].remark << endl;
+        cout << "  isRunning: " << (actions[i].isRunning ? "true" : "false") << endl;
+        cout << "-------------------------" << endl;
+    }
+}
+
+
+void clearActions(vector<Dev_Action>& actions) {
+    actions.clear(); // 清空所有元素
+}
+
+
+void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
+{
+    string messagetype = check_message_type(paylaod);
+
+    if(messagetype == "command")
+    {
+        Dev_Action action;
+        action.action = extract_json_field(paylaod, "action");
+        action.sub_action = extract_json_field(paylaod, "sub_action");
+        action.start_time = extract_json_field(paylaod, "start_time");
+        action.end_time = extract_json_field(paylaod, "end_time");
+        action.remark = extract_json_field(paylaod, "remark");
+        action.isRunning=false;
+        action.isCommand = true;
+        action.Forcestop = false;
+        action.compeleted  = false;
+        action.print();
+
+        actions.push_back(action);
+    }
+    else if(messagetype == "process")
+    {
+        clearActions(actions);
+        parseDataArray(paylaod, actions);
+        printActions(actions); //
+    }
+    else
+    {
+        cout << "err json ...."<< messagetype << endl;
+    }
+
+}
+Dev_Action * TraverActionsVector(vector<Dev_Action>& actions)
+{
+
+    Dev_Action * ret = NULL;
+    for (auto it = actions.begin(); it != actions.end(); )
+    {
+        auto& action = *it;
+        if(compareTime(action.start_time) >= 0 && !action.isRunning) //大于开始时间但是还没有开始直接启动
+        {
+            if(!action.isRunning  )//||(action.isCommand && STATUS== APP_TIKTOK&& action.sub_action=="弹幕")
+            {
+                ret = &action;
+                return ret;
+          //      cout << "准备启动活动:" <<action.action<<action.sub_action <<endl;
+            }
+        }
+        else if (compareTime(action.end_time) <= 0&& !action.isRunning)
+        {
+            std::cout << "无效活动:"<<action.action << action.sub_action<< std::endl;
+            std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+
+            // 删除当前元素
+            action.compeleted =true;
+            continue;
+        }
+        ++it;
+    }
+    return ret;
+}
+
+void pollAndRemoveCompletedActions(vector<Dev_Action>& actions)
+{
+    // 使用迭代器来删除元素
+    for (auto it = actions.begin(); it != actions.end();) {
+        if (it->compeleted) {
+            // 删除compeleted为true的元素
+            it = actions.erase(it);
+            cout << "Deleted completed action" << endl;
+        } else {
+            ++it;  // 继续下一个元素
+        }
+    }
+}
+
+
+void SchedulingProcess(struct Dev_Action *currentAct)
+{
+    // currentAct->print();
+    if(currentAct->action != STANDBY_ACT && currentAct->isRunning == false)
+    {
+        std::cout << "开始111活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
+
+        currentAct->print();
+        currentAct->isRunning =true;
+    }
+
+    if (((compareTime(currentAct->end_time) >= 0 && currentAct->isRunning) && !currentAct->compeleted) || \
+        (currentAct->Forcestop && !currentAct->compeleted))
+    {
+
+        std::cout << "完成活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
+
+        currentAct->compeleted=true;
+        // currentAct.isRunning =false;
+    }
+}
+/*
+ *
+ *
+
+            // else if(action.isCommand && currentAct.action!= STANDBY_ACT &&  action.Forcestop ==false)//todo  以后可能有BUG
+            // {
+
+            //     cout <<"新命令开始：" << action.action << action.sub_action;
+            //     cout <<"先退出" << action.action << action.sub_action;
+            //     action.Forcestop =true;
+            // }
+        int diff = compareTime(action.end_time);
+        if(diff >= 0&& action.isRunning)//大于结束时间且已经开始了停止活动
+        {
+            std::cout << "停止活动:"<<action.action << action.sub_action<< std::endl;
+            std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+            action.Forcestop =true;
+
+            continue;
+        }
+
+
+        if(ClearFinishedCommand(action, app_tiktok))
+        {
+            if(action.sub_action!="弹幕")
+                STATUS= IDLE;
+            // 删除当前元素
+            it = actions.erase(it);
+            devicedata.current_action.name=   "待命";
+            devicedata.current_action.start_time=  "00:00:00";
+            devicedata.current_action.end_time=   "00:00:00";
+            continue;
+        }
+        //else
+ *                //Dev_Action tmpaction = action;
+                action.isRunning =true;
+                if (action.action == "抖音")
+                {
+                    disposeMessageTickTOk(app_tiktok, action);
+                    STATUS =APP_TIKTOK;
+                }
+                else if (action.action == "红牛")
+                {
+                    STATUS =APP_WECHAT;
+                }
+            Dev_Action tmpaction = action;
+            tmpaction.sub_action="退出";
+            disposeMessageTickTOk(app_tiktok, tmpaction);
+            // 删除当前元素
+            it = actions.erase(it);
+            STATUS= IDLE;
+
+
+*/
