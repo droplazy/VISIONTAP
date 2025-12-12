@@ -204,26 +204,26 @@ string check_message_type(const string& json_data) {
 
     // 如果没有找到字段，则返回空
     if (pos == string::npos) {
-        cout << "messageType not found!" << endl;
+   //     cout << "messageType not found!" << endl;
         return "";
     }
-    cout << "Found \"messageType\": at position " << pos << endl;
+  //  cout << "Found \"messageType\": at position " << pos << endl;
 
     // 从字段位置开始，提取 "messageType" 的值
     pos = json_data.find(":", pos);
     if (pos == string::npos) {
-        cout << "Colon (:) not found after \"messageType\"" << endl;
+   //     cout << "Colon (:) not found after \"messageType\"" << endl;
         return "";
     }
-    cout << "Found colon (:) at position " << pos << endl;
+  //  cout << "Found colon (:) at position " << pos << endl;
 
     // 跳过冒号，找到第一个非空字符（去掉空格和引号）
     pos = json_data.find_first_not_of(" \t\n\r", pos + 1);
     if (pos == string::npos) {
-        cout << "No non-whitespace character found after colon" << endl;
+   //     cout << "No non-whitespace character found after colon" << endl;
         return "";
     }
-    cout << "Found non-whitespace character at position " << pos << endl;
+  //  cout << "Found non-whitespace character at position " << pos << endl;
 
     // 查找字段的结束位置，假设是双引号或其他标记
     size_t end_pos = json_data.find_first_of("\"", pos + 1);
@@ -231,11 +231,11 @@ string check_message_type(const string& json_data) {
         cout << "End quote for \"messageType\" not found!" << endl;
         return "";
     }
-    cout << "Found end quote at position " << end_pos << endl;
+ //   cout << "Found end quote at position " << end_pos << endl;
 
     // 提取字符串，返回 messageType 的值
     string message_type = json_data.substr(pos + 1, end_pos - pos - 1);
-    cout << "Extracted messageType: " << message_type << endl;
+  //  cout << "Extracted messageType: " << message_type << endl;
 
     // 返回提取到的 messageType 字段值
     return message_type;
@@ -388,7 +388,8 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
         action.isCommand = true;
         action.Forcestop = false;
         action.compeleted  = false;
-        action.print();
+        std::cout << "活动待运行:"<<action.action << action.sub_action<< std::endl;
+        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
 
         actions.push_back(action);
     }
@@ -404,40 +405,40 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
     }
 
 }
-Dev_Action * TraverActionsVector(vector<Dev_Action>& actions)
+void TraverActionsVector(vector<Dev_Action>& actions, Dev_Action*& cur)
 {
-
-    Dev_Action * ret = NULL;
     for (auto it = actions.begin(); it != actions.end(); )
     {
         auto& action = *it;
-        if(compareTime(action.start_time) >= 0 && !action.isRunning) //大于开始时间但是还没有开始直接启动
-        {
-            if(!action.isRunning  )//||(action.isCommand && STATUS== APP_TIKTOK&& action.sub_action=="弹幕")
-            {
-                ret = &action;
-                return ret;
-          //      cout << "准备启动活动:" <<action.action<<action.sub_action <<endl;
-            }
-        }
-        else if (compareTime(action.end_time) <= 0&& !action.isRunning)
-        {
-            std::cout << "无效活动:"<<action.action << action.sub_action<< std::endl;
-            std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
 
-            // 删除当前元素
-            action.compeleted =true;
-            continue;
+        if (compareTime(action.end_time) >= 0 && !action.isRunning)
+        {
+            std::cout << "无效活动:" << action.action << action.sub_action << std::endl;
+            std::cout << "开始时间:" << action.start_time << " 停止时间:" << action.end_time << std::endl;
+            it = actions.erase(it);  // 删除元素后，it自动指向下一个元素
         }
-        ++it;
+        else if (compareTime(action.start_time) >= 0 && !action.isRunning && cur== nullptr)  // 大于开始时间但是还没有开始直接启动
+        {
+            cur = &action;
+            cout << "准备启动活动:" << cur->action << cur->sub_action << endl;
+            ++it;  // 向下一个元素移动迭代器
+        }
+        else
+        {
+            ++it;  // 保持默认遍历，跳过没有删除或启动的活动
+        }
     }
-    return ret;
 }
+
 
 void pollAndRemoveCompletedActions(vector<Dev_Action>& actions)
 {
+       //  std::cout << "开始时间" << std::endl;
+
     // 使用迭代器来删除元素
     for (auto it = actions.begin(); it != actions.end();) {
+        auto& action = *it;
+       //     action.print();
         if (it->compeleted) {
             // 删除compeleted为true的元素
             it = actions.erase(it);
@@ -451,10 +452,10 @@ void pollAndRemoveCompletedActions(vector<Dev_Action>& actions)
 
 void SchedulingProcess(struct Dev_Action *currentAct)
 {
-    // currentAct->print();
-    if(currentAct->action != STANDBY_ACT && currentAct->isRunning == false)
+   //  currentAct->print();
+    if(currentAct->isRunning==false)
     {
-        std::cout << "开始111活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
         std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
 
         currentAct->print();
@@ -469,8 +470,11 @@ void SchedulingProcess(struct Dev_Action *currentAct)
         std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
 
         currentAct->compeleted=true;
+        currentAct =nullptr;
         // currentAct.isRunning =false;
     }
+ //   cout << "接口结束"<<endl;
+
 }
 /*
  *

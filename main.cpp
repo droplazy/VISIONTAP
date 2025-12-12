@@ -121,7 +121,7 @@ int main()
     mqttClient.start();
     string mqtt_topic;
     string mqtt_message;
-    struct Dev_Action *currentAct;
+    struct Dev_Action *currentAct=nullptr;
 
     // 主循环：任务调度
     while (1)
@@ -132,13 +132,18 @@ int main()
 
             ParseMqttMassage(mqtt_message,actions_vector);
         }
-        currentAct = TraverActionsVector(actions_vector);//遍历所有动作 置标志位
 
-        if(currentAct)
+        TraverActionsVector(actions_vector,currentAct);
+
+        if(currentAct!= nullptr)
         SchedulingProcess(currentAct);
-
+        // else
+        // {
+        //     cout << "currentAct 为空" <<endl;
+        // }
         pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
-
+        sleep(1);
+     //   cout << "debug ..." <<endl;
     }
 
     mqttClient.stop();
