@@ -37,7 +37,10 @@ int INPUT_HOME() {
 int INPUT_BACK() {
     return system("input keyevent 4");  // 4 是 BACK 键的 keycode
 }
-
+// BACK键事件
+int INPUT_TASKAPP() {
+    return system("input keyevent KEYCODE_APP_SWITCH");  // 4 是 BACK 键的 keycode
+}
 #define SCREEN_WIDTH  1024
 #define SCREEN_HEIGHT 600
 

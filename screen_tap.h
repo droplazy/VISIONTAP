@@ -9,6 +9,7 @@ int INPUT_SWIPE(ad_point start, ad_point end, int duration);
 int INPUT_HOME();
 int INPUT_BACK();
 int INPUT_TAP_DELAY(ad_point pos,int delay );
+int INPUT_TASKAPP();
 
 int OPEN_FILE_MANAGER();                      // 打开文件管理器
 int OPEN_CONTROL_PANEL();                     // 打开控制面板

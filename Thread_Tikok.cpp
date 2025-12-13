@@ -214,11 +214,17 @@ void Thread_Tikok::FollowMode(string FollowText,string roomname,int circleTimes)
                 for (i = 0; i < 15; ++i)
                 {
                     cout << "检查直播间三要素 >>>......\n" << endl;
-
-                    if( isLivingRoom())
+                    int ret = isLivingRoom() ;
+                    if( ret>=3)
                     {
                         cout << "确认完毕 >>>......\n" << endl;
                         break;
+                    }
+                    else if(ret <0)
+                    {
+                        isEnter =false;
+                        beatBack(5);
+                        continue;
                     }
                 }
                 if(i >=4)
@@ -239,7 +245,7 @@ void Thread_Tikok::FollowMode(string FollowText,string roomname,int circleTimes)
             for (int i = 0; i < 5; ++i) {
                 cout << "检查直播间三要素 >>>......\n" << endl;
 
-                if( isLivingRoom())
+                if( isLivingRoom() >=3)
                 {
                     cout << "确认完毕 >>>......\n" << endl;
                     break;
@@ -512,6 +518,15 @@ int Thread_Tikok::SpecifyLivingRoomOnSite(string link)
     return 0;
 }
 
+void Thread_Tikok::TaskUpdate(Dev_Action task)
+{
+    parseText(task.remark);
+    selectTaskPreExec();
+    action = task;
+
+    cout << "活动已经更新   --> " <<  action.sub_action<< endl;
+}
+
 void Thread_Tikok::parseText(const string &text)
 {
     ContentExtractor extractor;
@@ -572,6 +587,22 @@ bool Thread_Tikok::onAppStart()
 void Thread_Tikok::onAppExit()
 {
 
+
+    INPUT_TASKAPP();
+    double score;
+    ad_point match = FindTargetForDelay(TIKTOK_APPATTASK_CV,score,15);
+    if(match.x == -1 || match.y == -1)
+    {
+        cout << "没有找到图标...\n" <<endl;
+        INPUT_HOME();
+        return;
+    }
+    ad_point start = match;
+    start.y+=400;
+    INPUT_SWIPE(start,match,220);
+    cout << "APP已经完全退出" <<endl;
+    INPUT_HOME();
+
 }
 
 void Thread_Tikok::onStateChanged(ThreadState newState)
@@ -601,15 +632,15 @@ void Thread_Tikok::executeTask()
     if(TASK_EXEC == TASK_SEND_MESSAGE)
     {
         SendMessageToPerson(remark_id,remark_msg);
-        beatBack(10);
-        INPUT_HOME();
+        // beatBack(10);
+        // INPUT_HOME();
 
         TASK_EXEC = TASK_COMPELTED;
     }
     else if(TASK_EXEC == TASK_QUIT)
     {
-        beatBack(10);
-        INPUT_HOME();
+        // beatBack(10);
+        // INPUT_HOME();
      //   applacationstate = AppState::EXITING;
         TASK_EXEC = TASK_COMPELTED;
     }
@@ -619,7 +650,7 @@ void Thread_Tikok::executeTask()
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
 
-            if( isLivingRoom())
+            if( isLivingRoom() >=3)
             {
                 cout << "确认完毕 >>>......\n" << endl;
                 break;
@@ -643,10 +674,14 @@ void Thread_Tikok::executeTask()
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
 
-            if( isLivingRoom())
+            if( isLivingRoom()>=3)
             {
                 cout << "确认完毕 >>>......\n" << endl;
                 break;
+            }
+            else if(isLivingRoom() <0)
+            {
+                TASK_EXEC = TASK_COMPELTED;
             }
         }
 
@@ -666,8 +701,8 @@ void Thread_Tikok::executeTask()
             else if(RandomFollowUser() == -3)
             {
                 ProhibitFollow_b =true;
-                beatBack(10);
-                INPUT_HOME();
+                // beatBack(10);
+                // INPUT_HOME();
                 TASK_EXEC = TASK_COMPELTED;
             }
         }
@@ -675,46 +710,47 @@ void Thread_Tikok::executeTask()
     }
     else if(TASK_EXEC == TASK_SCROLLING_MODE)
     {
-
         ScrollingShortVideos(1);
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE)
     {
-        for (int i = 0; i < 3; ++i)
-        {
-            cout << "检查直播间三要素 >>>......\n" << endl;
-
-            if( isLivingRoom())
+        int ret = isLivingRoom();
+            if( ret>=3)
             {
-                cout << "确认完毕 >>>......\n" << endl;
-                break;
+             //   cout << "正在直播间："<<remark_link << endl;
             }
-            else if (i>=2)
+            else if(ret <0)
             {
-                SpecifyLivingRoomOnSite(remark_link);
-                break;
+                TASK_EXEC =TASK_COMPELTED;
             }
-        }
+            else
+            {
+                if(SpecifyLivingRoomOnSite(remark_link) ==-1)
+                {
+                    TASK_EXEC =TASK_COMPELTED;
+                }
+            }
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_BULLET)
     {
-        for (int i = 0; i < 15; ++i)
-        {
             cout << "检查直播间三要素 >>>......\n" << endl;
-            if( isLivingRoom())
+        int ret = isLivingRoom();
+            if( ret >=3)
             {
                 cout << "确认完毕 >>>......\n" << endl;
-                break;
+                SendBraggerForLivingRoom(remark_msg,false);
+                TASK_EXEC = TASK_LVIVINGROOM_ONSITE;
             }
-            else if (i>=14)
+            else if(ret <0)
+            {
+                TASK_EXEC =TASK_COMPELTED;
+            }
+            else
             {
                 SpecifyLivingRoomOnSite(remark_link);
-                break;
             }
-        }
 
-        SendBraggerForLivingRoom(remark_msg,false);
-        TASK_EXEC = TASK_LVIVINGROOM_ONSITE;
+
     }
     else if(TASK_EXEC == TASK_CONTENT_OPTRATION)
     {
@@ -740,8 +776,8 @@ void Thread_Tikok::executeTask()
 
             TASK_EXEC = TASK_COMPELTED;
         }
-        beatBack(10);
-        INPUT_HOME();
+        // beatBack(10);
+        // INPUT_HOME();
         TASK_EXEC = TASK_COMPELTED;
     }
     else
@@ -1160,7 +1196,7 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
     {
         cout << "检查直播间三要素 >>>......\n" << endl;
 
-        if( isLivingRoom())
+        if( isLivingRoom()>=3)
         {
             cout << "确认完毕 >>>......\n" << endl;
             return 0;
@@ -1311,7 +1347,7 @@ int Thread_Tikok::EntranceLivingRoom(string name)
     {
         cout << "检查直播间三要素 >>>......\n" << endl;
 
-        if( isLivingRoom())
+        if( isLivingRoom()>=3)
         {
             cout << "确认完毕 已经进入>>>......\n" << endl;
             break;
@@ -1586,7 +1622,7 @@ int Thread_Tikok::SendMessageToPerson(string name,string message)
     return 0;
 }
 
-bool Thread_Tikok::isLivingRoom()
+int Thread_Tikok::isLivingRoom()
 {
     bool ret = false;
     int eleGet=0;
@@ -1606,32 +1642,17 @@ bool Thread_Tikok::isLivingRoom()
     else
         eleGet ++;
 
-    match = FindTargetReturnPoint(TIKTOK_LIVING_ELE_3_UI_CV);//todo
-    if(match.x== -1 || match.y== -1)
-    {
-        cout << "未发现直播广场按钮\n" <<endl;
-    }
-    else
-        eleGet ++;
 
     match = FindTargetReturnPoint(TIKTOK_LIVING_TERMINATE_UI_CV);//todo
     if(match.x>0&& match.y>0)
     {
-        eleGet =0;
+        eleGet =-1;
         cout << "直播已经终止\n"<<endl;
     }
     else
         eleGet ++;
 
-
-    if(eleGet >=3)
-        ret=true;
-    else
-        ret = false;
-
-    //  LONG_DELAY;
-
-    return ret;
+    return eleGet;
 }
 bool Thread_Tikok::LaunchToHomepage()
 {

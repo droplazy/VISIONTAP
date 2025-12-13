@@ -204,6 +204,11 @@ std::string ThreadBase::getName() const {
     return threadName_;
 }
 
+void ThreadBase::TaskUpdate(Dev_Action task)
+{
+
+}
+
 // void ThreadBase::disposeSubTask()
 // {
 //     // 默认实现：直接返回成功

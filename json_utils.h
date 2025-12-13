@@ -39,7 +39,7 @@ using namespace std;
  string extractString(const string& json, const string& key);
  void clearActions(vector<Dev_Action>& actions);
  void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions);
- Dev_Action* TraverActionsVector(vector<Dev_Action>& actions);
+ Dev_Action* TraverActionsVector(vector<Dev_Action>& actions, Dev_Action* &currentAct);
  void pollAndRemoveCompletedActions(vector<Dev_Action>& actions);
  int compareTime(const std::string& target);
  // void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *p_thread);

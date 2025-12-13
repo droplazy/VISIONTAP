@@ -18,12 +18,16 @@ void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
         currentAct->print();
         currentAct->isRunning =true;
 
-        if(currentAct->action == "抖音")
+        if(currentAct->action == "抖音" && p_thread == nullptr)
         {
-            p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
-            p_thread->start();
+         //   p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
+         //   p_thread->start();
         }
-
+        else if(currentAct->action == "抖音" && p_thread != nullptr && \
+                   (currentAct->sub_action=="弹幕" || currentAct->sub_action=="退出" ))
+        {
+         //   p_thread->TaskUpdate(*currentAct);
+        }
 
     }
 
@@ -36,6 +40,15 @@ void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
 
         currentAct->compeleted=true;
         currentAct =nullptr;
+
+        if(p_thread== nullptr)
+        {
+            cout <<"警告 ：没有发现运行的app管理线程"<<endl;
+        }
+        else
+        {
+            p_thread->safeStop();
+        }
         // currentAct.isRunning =false;
     }
     //   cout << "接口结束"<<endl;
@@ -69,64 +82,53 @@ int main()
     {
         if(mqttClient.isMessageComing(mqtt_message,mqtt_topic))
         {
-         //    std::cout << "Message received on topic [" << mqtt_topic << "]: " << mqtt_message << std::endl;
-          ParseMqttMassage(mqtt_message,actions_vector);
+            //    std::cout << "Message received on topic [" << mqtt_topic << "]: " << mqtt_message << std::endl;
+            ParseMqttMassage(mqtt_message,actions_vector);
         }
 
-        if(currentAct == nullptr)
-        {
-            currentAct  =  TraverActionsVector(actions_vector);
-        }
-        else if(currentAct != nullptr)
+
+         TraverActionsVector(actions_vector,currentAct);
+
+
+        if(currentAct != nullptr)
         {
             SchedulingProcess(currentAct,p_applation);
-        //安全退出线程 方法  先等app状态标志为退出成功后在这里 调用safestop 重要
-        //cout << "当前活动:" << currentAct->sub_action <<endl;
-        if(p_applation!= nullptr)
-        {
-            if(p_applation->applacationstate ==ThreadBase::AppState::EXITING)
+            //安全退出线程 方法  先等app状态标志为退出成功后在这里 调用safestop 重要
+            //cout << "当前活动:" << currentAct->sub_action <<endl;
+            if(p_applation!= nullptr)
             {
-                cout <<"线程已经退出..." <<endl;
-                p_applation->safeStop();
-                p_applation =nullptr;
+                if(p_applation->applacationstate ==ThreadBase::AppState::EXITING)
+                {
+                    cout <<"线程已经退出..." <<endl;
+                    p_applation->safeStop();
+                    p_applation =nullptr;
+                    currentAct->compeleted = true;
+                }
+                else
+                {
+
+                }
             }
             else
             {
-                switch(p_applation->applacationstate) {
-                case ThreadBase::AppState::STARTING:
-                    cout << "[DEBUG] App状态: STARTING (启动中)" << endl;
-                    break;
-                case ThreadBase::AppState::IDLE:
-                    cout << "[DEBUG] App状态: IDLE (空闲中)" << endl;
-                    break;
-                case ThreadBase::AppState::BUSY:
-                    cout << "[DEBUG] App状态: BUSY (忙碌中)" << endl;
-                    break;
-                case ThreadBase::AppState::EXITING:
-                    cout << "[DEBUG] App状态: EXITING (退出中)" << endl;
-                    break;
-                case ThreadBase::AppState::ERROR:
-                    cout << "[ERROR] App状态: ERROR (错误状态)" << endl;
-                    break;
-                default:
-                    cout << "[WARN] App状态: UNKNOWN (未知状态)" << endl;
-                    break;
-                }
+                cout << "p_applation 指针为空" <<endl;
             }
-        }
-        else
-        {
-            cout << "p_applation 指针为空" <<endl;
-        }
-         //  currentAct->print();
+            //  currentAct->print();
+            cout << currentAct->sub_action <<endl;
+            cout << currentAct->end_time <<endl;
+             cout << currentAct->isRunning <<endl;
+
         }
         else
         {
             cout << "没有活动" <<endl;
         }
 
-       //  printSubActions(actions_vector); 打印出所有任务队列
-         pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
+        pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
+         cout << "*********************" <<endl;
+        printSubActions(actions_vector); //打印出所有任务队列
+         cout << "+++++++++++++++++++++" <<endl;
+
         sleep(1);
     }
 
@@ -137,7 +139,12 @@ int main()
 
 #if 0
 
+        else if(currentAct->action == "抖音" && p_thread != nullptr &&currentAct->sub_action=="弹幕")
+        {
+            p_thread->TaskUpdate(*currentAct);
+            currentAct->compeleted =true;
 
+        }
 
 
         TraverActionsVector(actions_vector,currentAct);

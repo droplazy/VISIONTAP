@@ -108,7 +108,7 @@ private:
     int SearchPersonZone(string Name);//进入搜索内容展示
     int enterSpecifyContent(string content ,ad_operations &opt_point);//进入指定的内容;
     int SendMessageToPerson(string name, string message);//发送私信
-    bool isLivingRoom();
+    int isLivingRoom();
     int EntranceLivingRoom(string name);//进入指定直播间
     int SendBraggerForLivingRoom(string message, bool noEdit);//发送弹幕僚
     int FollowSpecifiedUser(string name);//关注指定人

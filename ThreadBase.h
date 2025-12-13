@@ -94,6 +94,7 @@ public:
 
     Dev_Action action;
     AppState applacationstate;
+    virtual void TaskUpdate(Dev_Action task);
    // virtual void disposeSubTask();
     // ========== 虚函数（子类需要实现或重写）==========
 

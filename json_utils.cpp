@@ -408,18 +408,17 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
     }
 
 }
-Dev_Action* TraverActionsVector(vector<Dev_Action>& actions)
+Dev_Action* TraverActionsVector(vector<Dev_Action>& actions , Dev_Action *&currentAct)
 {
     if (actions.empty())  // 先检查 actions 是否为空
     {
-        std::cerr << "错误：活动列表为空!" << std::endl;
         return nullptr;
     }
 
     for (auto it = actions.begin(); it != actions.end();)
     {
         auto& action = *it;
-
+    // 注意 current会遍历到他自己！！！
         try {
             // 如果活动已结束且未运行，删除活动
             if (compareTime(action.end_time) >= 0 && !action.isRunning)
@@ -429,9 +428,20 @@ Dev_Action* TraverActionsVector(vector<Dev_Action>& actions)
 
                 it = actions.erase(it);  // 删除元素后，it 自动指向下一个元素
             }
-            else if (compareTime(action.start_time) >= 0 && !action.isRunning)  // 如果活动开始时间到且没有正在进行的活动，则启动
+            else if (compareTime(action.start_time) >= 0 && currentAct==nullptr )  // 如果活动开始时间到且没有正在进行的活动，则启动
             {
                 std::cout << "准备启动活动:" << action.action << action.sub_action << std::endl;
+                currentAct =&action;
+                return &action;  // 返回指向活动的指针
+            }
+            else if (compareTime(action.start_time) >= 0 && action.isRunning == false &&(action.sub_action =="弹幕"   ||action.sub_action =="退出") )
+            {   //注意 action.isRunning 是新消息   current 是在处理的消息
+                std::cout << "更新活动:" << currentAct->action<<currentAct->sub_action<<"更新为"<< action.sub_action << std::endl;
+                //currentAct =&action;
+                currentAct->sub_action = action.sub_action;
+                currentAct->remark = action.remark;
+                currentAct->isRunning=false;
+                action.compeleted =true;
                 return &action;  // 返回指向活动的指针
             }
             else
@@ -444,7 +454,6 @@ Dev_Action* TraverActionsVector(vector<Dev_Action>& actions)
             ++it;  // 即使发生异常，也继续遍历
         }
     }
-
     return nullptr;  // 如果没有找到需要启动的活动，返回 nullptr
 }
 

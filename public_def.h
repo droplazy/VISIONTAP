@@ -282,6 +282,7 @@ typedef struct {
 #define TIKTOK_SEND_MESSAGE_UI_CV    "/data/machine_vision/apppic/pressSend_ui.png"   // 发私信
 #define TIKTOK_LIVING_UI_CV    "/data/machine_vision/apppic/isLiving.png"   // 直播中
 #define TIKTOK_LIVING_UI_2_CV    "/data/machine_vision/apppic/isLiving_2.png"   // 直播中
+#define TIKTOK_APPATTASK_CV    "/data/machine_vision/apppic/tiktok_task.png"   // 直播中
 
 
 #define TIKTOK_LIVING_ELE_1_UI_CV    "/data/machine_vision/apppic/living_ele_1.png"   // 直播三要素
