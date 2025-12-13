@@ -53,11 +53,11 @@ link_libraries(
 # 可执行文件
 add_executable(cv_exe
     ./main.cpp
-    app_tiktok.cpp
+    Thread_Tikok.cpp
     machine_vision.cpp
     screen_tap.cpp
     opencv_utils.cpp
-    app_tiktok.h
+    Thread_Tikok.h
     machine_vision.h
     pulic_def.h
     screen_tap.h
@@ -66,4 +66,6 @@ add_executable(cv_exe
     mqtt_thread.cpp
     json_utils.h
     json_utils.cpp
+    ThreadBase.h
+    ThreadBase.cpp
 )

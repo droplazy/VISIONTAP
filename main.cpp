@@ -1,12 +1,11 @@
 #include <unistd.h>
-#include "app_tiktok.h"
 #include "json_utils.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "mqtt_thread.h"
 
-
+#if 0
 int disposeMessageTickTOk(class APP_TIKTOK &app, Dev_Action &action)
 {
     int retCode = 0; // 0=未处理，1=成功，负值=错误
@@ -108,7 +107,7 @@ bool ClearFinishedCommand(Dev_Action & action, class APP_TIKTOK &app_tiktok)
     }
     return false;;
 }
-
+#endif
 
 void printSubActions(const vector<Dev_Action>& actions_vector) {
     for (const auto& action : actions_vector) {
@@ -138,7 +137,6 @@ int main()
         {
          //    std::cout << "Message received on topic [" << mqtt_topic << "]: " << mqtt_message << std::endl;
           ParseMqttMassage(mqtt_message,actions_vector);
-
         }
 
         if(currentAct == nullptr)
@@ -148,8 +146,7 @@ int main()
         else if(currentAct != nullptr)
         {
             SchedulingProcess(currentAct);
-           cout << "当前活动:" << currentAct->sub_action <<endl;
-
+         //  cout << "当前活动:" << currentAct->sub_action <<endl;
          //  currentAct->print();
         }
         else
@@ -157,7 +154,7 @@ int main()
             cout << "没有活动" <<endl;
         }
 
-         printSubActions(actions_vector);
+       //  printSubActions(actions_vector); 打印出所有任务队列
          pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
         sleep(1);
     }

@@ -1,4 +1,4 @@
-#include "app_tiktok.h"
+#include "Thread_Tikok.h"
 #include "machine_vision.h"
 #include "opencv_utils.h"
 #include <iostream>
@@ -8,12 +8,12 @@
 
 
 
-APP_TIKTOK::APP_TIKTOK()
+Thread_Tikok::Thread_Tikok()
 {
 
 }
 
-APP_TIKTOK::~APP_TIKTOK() {
+Thread_Tikok::~Thread_Tikok() {
     // 确保析构时停止线程
     if (t.joinable()) {
         stop();
@@ -21,7 +21,7 @@ APP_TIKTOK::~APP_TIKTOK() {
 }
 
 
-bool APP_TIKTOK::checkAPKRunning(std::string apk_name)
+bool Thread_Tikok::checkAPKRunning(std::string apk_name)
 {
     // 使用绝对路径调用 ps 命令，并且使用 -F 关闭正则表达式
     std::string command = "/bin/ps -ef | grep -v grep | grep -F \"" + apk_name + "\"\n";
@@ -52,19 +52,19 @@ bool APP_TIKTOK::checkAPKRunning(std::string apk_name)
     return isRunning; // 返回是否找到对应的进程
 }
 
-void APP_TIKTOK::start() {
+void Thread_Tikok::start() {
     // 启动线程
-    t = std::thread(&APP_TIKTOK::run, this);  // 创建线程并绑定到成员函数
+    t = std::thread(&Thread_Tikok::run, this);  // 创建线程并绑定到成员函数
 }
 
-void APP_TIKTOK::stop() {
+void Thread_Tikok::stop() {
     // 停止线程
     //running = false;
     if (t.joinable()) {
         t.join();  // 等待线程结束
     }
 }
-void APP_TIKTOK::ContentExtraction()
+void Thread_Tikok::ContentExtraction()
 {
     std::cout << std::boolalpha;
 
@@ -92,7 +92,7 @@ void APP_TIKTOK::ContentExtraction()
 
 }
 
-void APP_TIKTOK::CheckFirstLaunch()
+void Thread_Tikok::CheckFirstLaunch()
 {
     snap_screen();
 
@@ -111,7 +111,7 @@ void APP_TIKTOK::CheckFirstLaunch()
 
     return ;
 }
-void APP_TIKTOK::CheckUpgrade()
+void Thread_Tikok::CheckUpgrade()
 {
     snap_screen();
 
@@ -127,7 +127,7 @@ void APP_TIKTOK::CheckUpgrade()
 
     return ;
 }
-bool APP_TIKTOK::checklogin()
+bool Thread_Tikok::checklogin()
 {
     snap_screen();
 
@@ -156,7 +156,7 @@ bool APP_TIKTOK::checklogin()
     return false;
 }
 
-bool APP_TIKTOK::ShowMyHomepage()
+bool Thread_Tikok::ShowMyHomepage()
 {
     ad_point clickp= TIKTOK_OPT_I;
     INPUT_TAP(clickp);
@@ -181,7 +181,7 @@ bool APP_TIKTOK::ShowMyHomepage()
     return false;
 }
 
-bool APP_TIKTOK::CheckLaunching()
+bool Thread_Tikok::CheckLaunching()
 {
     snap_screen();
 
@@ -202,7 +202,7 @@ bool APP_TIKTOK::CheckLaunching()
 }
 
 
-void APP_TIKTOK::beatBack(int cnt)
+void Thread_Tikok::beatBack(int cnt)
 {
     for (int var = 0; var < cnt; ++var) {
         INPUT_BACK();
@@ -211,7 +211,7 @@ void APP_TIKTOK::beatBack(int cnt)
 
 }
 
-void APP_TIKTOK::FollowMode(string FollowText,string roomname,int circleTimes)
+void Thread_Tikok::FollowMode(string FollowText,string roomname,int circleTimes)
 {
 
 
@@ -320,7 +320,7 @@ void APP_TIKTOK::FollowMode(string FollowText,string roomname,int circleTimes)
 
 }
 
-bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point &farvour,ad_point &forward,double &finalscore)
+bool Thread_Tikok::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point &farvour,ad_point &forward,double &finalscore)
 {
     snap_screen();
     cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
@@ -399,7 +399,7 @@ bool APP_TIKTOK::SearchShortVelement(ad_point &like,ad_point &comment ,ad_point 
     return true;
 }
 
-void APP_TIKTOK::ScrollingShortVideos(int clycles)
+void Thread_Tikok::ScrollingShortVideos(int clycles)
 {
     // ContentExtraction();
     ad_point like ={0,0};
@@ -509,7 +509,7 @@ void APP_TIKTOK::ScrollingShortVideos(int clycles)
 
 }
 
-int APP_TIKTOK::SpecifyContentOperation(string link,CONTENT_OPT opt,string comment)
+int Thread_Tikok::SpecifyContentOperation(string link,CONTENT_OPT opt,string comment)
 {
     ad_operations click_p={0};
 
@@ -540,7 +540,7 @@ int APP_TIKTOK::SpecifyContentOperation(string link,CONTENT_OPT opt,string comme
     return 0;
 }
 
-int APP_TIKTOK::SpecifyLivingRoomOnSite(string link)
+int Thread_Tikok::SpecifyLivingRoomOnSite(string link)
 {
     if(enterSpecifyLivingrom(link) <0)
     {
@@ -549,7 +549,7 @@ int APP_TIKTOK::SpecifyLivingRoomOnSite(string link)
     }
     return 0;
 }
-void APP_TIKTOK::ContentForward()
+void Thread_Tikok::ContentForward()
 {
     double score;
     ad_point match={0};
@@ -636,7 +636,7 @@ void APP_TIKTOK::ContentForward()
     cout << "点击发送\n"<< endl;
     SHORT_DELAY;
 }
-void APP_TIKTOK::ContentComment(string content)
+void Thread_Tikok::ContentComment(string content)
 {
 
     CopyTextFormSys(content);
@@ -779,7 +779,7 @@ void APP_TIKTOK::ContentComment(string content)
     }
 }
 
-void APP_TIKTOK::RandomShortVideoOperation(ad_point click,CONTENT_OPT opt,string content)
+void Thread_Tikok::RandomShortVideoOperation(ad_point click,CONTENT_OPT opt,string content)
 {
     if(opt == GIVELIKE_OPT)
     {
@@ -805,7 +805,7 @@ void APP_TIKTOK::RandomShortVideoOperation(ad_point click,CONTENT_OPT opt,string
 }
 
 
-int APP_TIKTOK::SearchPersonZone(string Name)
+int Thread_Tikok::SearchPersonZone(string Name)
 {
 #if 1
     if(CopyTextFormSys(Name) <0 )
@@ -907,7 +907,7 @@ int APP_TIKTOK::SearchPersonZone(string Name)
     }*/
     return 0;
 }
-int APP_TIKTOK::enterSpecifyLivingrom(string content)
+int Thread_Tikok::enterSpecifyLivingrom(string content)
 {
     if(CopyTextFormSys(content))
     {
@@ -973,7 +973,7 @@ int APP_TIKTOK::enterSpecifyLivingrom(string content)
     }
     return 0;
 }
-int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
+int Thread_Tikok::enterSpecifyContent(string content ,ad_operations &opt_point)
 {
     if(CopyTextFormSys(content))
     {
@@ -1032,7 +1032,7 @@ int APP_TIKTOK::enterSpecifyContent(string content ,ad_operations &opt_point)
     return 0;
 }
 
-void APP_TIKTOK::randomCickScreen()
+void Thread_Tikok::randomCickScreen()
 {
     ad_point clickP={512,300};
     INPUT_TAP(clickP);
@@ -1048,7 +1048,7 @@ void APP_TIKTOK::randomCickScreen()
     usleep(100*1000);
 }
 
-int APP_TIKTOK::EntranceLivingRoom(string name)
+int Thread_Tikok::EntranceLivingRoom(string name)
 {
     if (SearchPersonZone(name) == -1)
     {
@@ -1125,7 +1125,7 @@ int APP_TIKTOK::EntranceLivingRoom(string name)
 
     return 0;
 }
-int APP_TIKTOK::RandomFollowUser()
+int Thread_Tikok::RandomFollowUser()
 {
 
 
@@ -1217,7 +1217,7 @@ int APP_TIKTOK::RandomFollowUser()
     return 0 ;
 }
 
-int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
+int Thread_Tikok::SendBraggerForLivingRoom(string message,bool noEdit)
 {
     if(!noEdit)
     {
@@ -1301,7 +1301,7 @@ int APP_TIKTOK::SendBraggerForLivingRoom(string message,bool noEdit)
     return 0;
 }
 
-int APP_TIKTOK::FollowSpecifiedUser(string name)
+int Thread_Tikok::FollowSpecifiedUser(string name)
 {
     SearchPersonZone(name);
 
@@ -1322,7 +1322,7 @@ int APP_TIKTOK::FollowSpecifiedUser(string name)
     return 0;
 }
 
-int APP_TIKTOK::SendMessageToPerson(string name,string message)
+int Thread_Tikok::SendMessageToPerson(string name,string message)
 {
     int ret = SearchPersonZone(name);
     if(ret < 0)
@@ -1385,7 +1385,7 @@ int APP_TIKTOK::SendMessageToPerson(string name,string message)
     return 0;
 }
 
-bool APP_TIKTOK::isLivingRoom()
+bool Thread_Tikok::isLivingRoom()
 {
     bool ret = false;
     int eleGet=0;
@@ -1432,7 +1432,7 @@ bool APP_TIKTOK::isLivingRoom()
 
     return ret;
 }
-bool APP_TIKTOK::LaunchToHomepage()
+bool Thread_Tikok::LaunchToHomepage()
 {
     if(!CheckLaunching())
     {
@@ -1473,7 +1473,7 @@ bool APP_TIKTOK::LaunchToHomepage()
     }
 }
 
-void APP_TIKTOK::run()
+void Thread_Tikok::run()
 {
     LONG_DELAY;
     string msg;
@@ -1742,7 +1742,7 @@ void APP_TIKTOK::run()
 int getRandomInRange(int min, int max) {
     return rand() % (max - min + 1) + min;
 }
-void APP_TIKTOK::scrollingUP()
+void Thread_Tikok::scrollingUP()
 {
     // 给start和end坐标添加随机抖动
     ad_point start = {512 + getRandomInRange(-12, 12), 300 + getRandomInRange(-10, 10)};
@@ -1754,11 +1754,11 @@ void APP_TIKTOK::scrollingUP()
     // 执行滑动操作
     INPUT_SWIPE(start, end, duration);
 }
-void APP_TIKTOK::turnoffAPP()
+void Thread_Tikok::turnoffAPP()
 {
 
 }
-void APP_TIKTOK::scrollingDown()
+void Thread_Tikok::scrollingDown()
 {
     // 给start和end坐标添加随机抖动
     ad_point start = {512 + getRandomInRange(-12, 12), 50 + getRandomInRange(-10, 10)};

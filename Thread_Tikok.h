@@ -135,7 +135,7 @@ public:
 #define TIKTOK_CONTENT_FIRSTLAUNCH_CV    "/data/machine_vision/apppic/firstlaunch.png"   //.png
 
 // 类声明
-class APP_TIKTOK {
+class Thread_Tikok {
 public:
     // 枚举类型
     enum ContentType {
@@ -171,8 +171,8 @@ public:
         ad_point forward;
     } ad_operations;
     // 构造函数和析构函数
-    APP_TIKTOK();
-    ~APP_TIKTOK();
+    Thread_Tikok();
+    ~Thread_Tikok();
 
     ACTING_COMMAND COMMAND =NONE;
     string remark;
