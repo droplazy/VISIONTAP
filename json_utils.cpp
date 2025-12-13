@@ -1,4 +1,7 @@
 #include "json_utils.h"
+
+
+
 // 生成当前时间的辅助函数
 string getCurrentTime() {
     time_t now =  time(0);
@@ -467,31 +470,9 @@ void pollAndRemoveCompletedActions(vector<Dev_Action>& actions)
 }
 
 
-void SchedulingProcess(struct Dev_Action *currentAct)
-{
-   //  currentAct->print();
-    if(currentAct->isRunning==false)
-    {
-        std::cout << "开始活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
-        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
 
-        currentAct->print();
-        currentAct->isRunning =true;
-    }
-
-    if (((compareTime(currentAct->end_time) >= 0 && currentAct->isRunning) && !currentAct->compeleted) || \
-        (currentAct->Forcestop && !currentAct->compeleted))
-    {
-
-        std::cout << "完成活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
-        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
-
-        currentAct->compeleted=true;
-        currentAct =nullptr;
-        // currentAct.isRunning =false;
-    }
- //   cout << "接口结束"<<endl;
-
+int getRandomInRange(int min, int max) {
+    return rand() % (max - min + 1) + min;
 }
 /*
  *

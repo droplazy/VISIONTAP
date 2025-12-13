@@ -10,13 +10,17 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include "public_def.h"
+#include "json_utils.h"
+
 
 // 线程状态枚举
 enum class ThreadState {
     STARTING,   // 启动中
     IDLE,       // 空闲
     BUSY,       // 忙碌
-    EXITING     // 退出中
+    EXITING,     // 退出中
+    ERROR    // 退出中
 };
 
 // 文本解析结果结构体
@@ -51,9 +55,20 @@ protected:
     void setState(ThreadState newState);
 
 public:
-    // 构造函数
-    ThreadBase(const std::string& name = "ThreadBase");
 
+    // 线程状态枚举
+    enum class AppState {
+        STARTING,   // 启动中
+        IDLE,       // 空闲
+        BUSY,       // 忙碌
+        EXITING,     // 退出中
+        ERROR    // 退出中
+    };
+
+
+    // 构造函数
+    // 必须传入action
+    ThreadBase(const std::string &name, Dev_Action devinfo);
     // 虚析构函数
     virtual ~ThreadBase();
 
@@ -77,10 +92,13 @@ public:
     bool isRunning() const;
     std::string getName() const;
 
+    Dev_Action action;
+    AppState applacationstate;
+   // virtual void disposeSubTask();
     // ========== 虚函数（子类需要实现或重写）==========
 
     // 文本解析虚函数
-    virtual ParseResult parseText(const std::string& text);
+    virtual void parseText(const std::string& text);
 
     // APP启动虚函数
     virtual bool onAppStart();

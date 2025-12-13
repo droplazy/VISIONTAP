@@ -4,110 +4,43 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "mqtt_thread.h"
+#include "ThreadBase.h"
+#include "Thread_Tikok.h"
 
-#if 0
-int disposeMessageTickTOk(class APP_TIKTOK &app, Dev_Action &action)
+void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
 {
-    int retCode = 0; // 0=未处理，1=成功，负值=错误
-    try {
-        if (action.sub_action == "私信")
+    //  currentAct->print();
+    if(currentAct->isRunning==false)
+    {
+        std::cout << "开始活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
+
+        currentAct->print();
+        currentAct->isRunning =true;
+
+        if(currentAct->action == "抖音")
         {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
+            p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
+            p_thread->start();
         }
-        else if (action.sub_action == "直播")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_ONSITE;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else if (action.sub_action == "评论")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else if (action.sub_action == "关注")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::FOLLOW_SOMEONE;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else if (action.sub_action == "弹幕")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_BULLET;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else if (action.sub_action == "退出")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::QUIT;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else if (action.sub_action == "互粉")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::FOLLOW_MODE;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else if (action.sub_action == "刷视频")
-        {
-            app.remark = action.remark;
-            app.COMMAND = APP_TIKTOK::ACTING_COMMAND::SCROLLING_MODE;
-            cout << "获取命令2：" << action.action << action.sub_action << endl;
-            retCode = 1;
-        }
-        else
-        {
-            std::cerr << "未知的sub_action: " << action.sub_action << std::endl;
-            retCode = -2;
-        }
-    }
-    catch (const std::exception& e) {
-        std::cerr << "disposeMessageTickTOk异常: " << e.what() << std::endl;
-        retCode = -999;
+
+
     }
 
-    return retCode;
+    if (((compareTime(currentAct->end_time) >= 0 && currentAct->isRunning) && !currentAct->compeleted) || \
+        (currentAct->Forcestop && !currentAct->compeleted))
+    {
+
+        std::cout << "完成活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
+
+        currentAct->compeleted=true;
+        currentAct =nullptr;
+        // currentAct.isRunning =false;
+    }
+    //   cout << "接口结束"<<endl;
+
 }
-bool ClearFinishedCommand(Dev_Action & action, class APP_TIKTOK &app_tiktok)
-{
-    if(action.isRunning&& action.action=="抖音"&&app_tiktok.COMMAND ==APP_TIKTOK::ACTING_COMMAND::NONE)
-    {//todo
-        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
-        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
-        return true;
-    }
-    if(action.isRunning&& action.action=="抖音"&&action.sub_action=="私信"&&app_tiktok.COMMAND !=APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE)
-    {//todo
-        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
-        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
-        return true;
-    }
-    if(action.isRunning&& action.action=="抖音"&&action.sub_action=="弹幕"&&app_tiktok.COMMAND !=APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_BULLET)
-    {//todo
-        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
-        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
-        return true;
-    }
-    if(action.isRunning&& action.action=="抖音"&&action.sub_action=="评论"&&app_tiktok.COMMAND !=APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION)
-    {//todo
-        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
-        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
-        return true;
-    }
-    return false;;
-}
-#endif
 
 void printSubActions(const vector<Dev_Action>& actions_vector) {
     for (const auto& action : actions_vector) {
@@ -121,6 +54,7 @@ void printSubActions(const vector<Dev_Action>& actions_vector) {
 int main()
 {
     DeviceData devicedata ;
+    ThreadBase *p_applation =nullptr;
     vector<Dev_Action> actions_vector;
     actions_vector.reserve(24);
     string processId;
@@ -145,8 +79,37 @@ int main()
         }
         else if(currentAct != nullptr)
         {
-            SchedulingProcess(currentAct);
-         //  cout << "当前活动:" << currentAct->sub_action <<endl;
+            SchedulingProcess(currentAct,p_applation);
+
+        //cout << "当前活动:" << currentAct->sub_action <<endl;
+        if(p_applation!= nullptr)
+        {
+            switch(p_applation->applacationstate) {
+            case ThreadBase::AppState::STARTING:
+                cout << "[DEBUG] App状态: STARTING (启动中)" << endl;
+                break;
+            case ThreadBase::AppState::IDLE:
+                cout << "[DEBUG] App状态: IDLE (空闲中)" << endl;
+                break;
+            case ThreadBase::AppState::BUSY:
+                cout << "[DEBUG] App状态: BUSY (忙碌中)" << endl;
+                break;
+            case ThreadBase::AppState::EXITING:
+                cout << "[DEBUG] App状态: EXITING (退出中)" << endl;
+                break;
+            case ThreadBase::AppState::ERROR:
+                cout << "[ERROR] App状态: ERROR (错误状态)" << endl;
+                break;
+            default:
+                cout << "[WARN] App状态: UNKNOWN (未知状态)" << endl;
+                break;
+            }
+
+        }
+        else
+        {
+            cout << "p_applation 指针为空" <<endl;
+        }
          //  currentAct->print();
         }
         else

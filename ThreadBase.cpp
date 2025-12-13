@@ -6,11 +6,17 @@ ParseResult::ParseResult() : success(false) {}
 ParseResult::ParseResult(bool s, const std::string& d, const std::string& e)
     : success(s), data(d), errorMessage(e) {}
 
-// ThreadBase 构造函数
-ThreadBase::ThreadBase(const std::string& name)
-    : state_(ThreadState::EXITING)
+// 在构造函数实现中：
+ThreadBase::ThreadBase(const std::string& name, Dev_Action devinfo)
+    : threadName_(name)   // 初始化成员变量
+    , action(devinfo)     // 将参数传给action
+    , state_(ThreadState::EXITING)
     , shouldExit_(true)
-    , threadName_(name) {}
+{
+    // 构造函数体
+   // std::cout << threadName_ << " 构造函数: action初始化完成" << std::endl;
+
+}
 
 // 移动构造函数
 ThreadBase::ThreadBase(ThreadBase&& other) noexcept
@@ -129,7 +135,7 @@ void ThreadBase::stop() {
 
     // 设置退出标志
     shouldExit_ = true;
-    cond_.notify_all();
+    cond_.notify_all(); //不调用怎么根据拉姆大表达式退出
 
     // 等待线程结束
     if (thread_ && thread_->joinable()) {
@@ -198,13 +204,19 @@ std::string ThreadBase::getName() const {
     return threadName_;
 }
 
+// void ThreadBase::disposeSubTask()
+// {
+//     // 默认实现：直接返回成功
+//  //   std::cout << threadName_ << ": Default parseText called with: " << text << std::endl;
+// }
+
 // ========== 虚函数默认实现 ==========
 
 // 文本解析虚函数（默认实现）
-ParseResult ThreadBase::parseText(const std::string& text) {
+void ThreadBase::parseText(const std::string& text) {
     // 默认实现：直接返回成功
     std::cout << threadName_ << ": Default parseText called with: " << text << std::endl;
-    return ParseResult(true, text, "");
+   // return ParseResult(true, text, "");
 }
 
 // APP启动虚函数（默认实现）

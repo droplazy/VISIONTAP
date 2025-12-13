@@ -59,7 +59,7 @@ add_executable(cv_exe
     opencv_utils.cpp
     Thread_Tikok.h
     machine_vision.h
-    pulic_def.h
+    public_def.h
     screen_tap.h
     opencv_utils.h
     mqtt_thread.h

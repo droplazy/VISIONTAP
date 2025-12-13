@@ -1,7 +1,7 @@
 #ifndef MACHINE_VISION_H   // 判断是否已经定义过 MACHINE_VISION_H
 #define MACHINE_VISION_H   // 如果没有定义过，则定义它
 
-#include "pulic_def.h"
+#include "public_def.h"
 #include "opencv_utils.h"
 #include <fstream>
 

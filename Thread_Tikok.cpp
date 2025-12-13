@@ -6,12 +6,23 @@
 #include "screen_tap.h"
 
 
-
+#if 0
 
 Thread_Tikok::Thread_Tikok()
+    : ThreadBase("Thread_Tikok", Dev_Action())  // 调用父类的两个参数构造函数
 {
-
+    std::cout << "Thread_Tikok 默认构造函数" << std::endl;
 }
+#endif
+
+// 带参数的构造函数
+Thread_Tikok::Thread_Tikok(const std::string& name, const Dev_Action& action)
+    : ThreadBase(name, action)  // 将参数传递给父类
+{
+    std::cout << "Thread_Tikok 构造函数: " << name << std::endl;
+    parseText(action.remark);
+}
+
 
 Thread_Tikok::~Thread_Tikok() {
     // 确保析构时停止线程
@@ -20,50 +31,6 @@ Thread_Tikok::~Thread_Tikok() {
     }
 }
 
-
-bool Thread_Tikok::checkAPKRunning(std::string apk_name)
-{
-    // 使用绝对路径调用 ps 命令，并且使用 -F 关闭正则表达式
-    std::string command = "/bin/ps -ef | grep -v grep | grep -F \"" + apk_name + "\"\n";
-    //  std::cout << "Command: " << command << std::endl;  // 打印调试信息，查看命令
-
-    FILE* fp = popen(command.c_str(), "r");
-    if (fp == nullptr) {
-        perror("popen failed");
-        return false; // 如果无法执行命令，返回 false
-    }
-
-    usleep(100000);  // 增加延迟时间
-
-    char buffer[256];
-    bool isRunning = false;
-
-    // 读取命令输出，检查传入的 apk_name 是否在运行
-    while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
-        //  printf("buffer: %s\n", buffer);  // 打印调试信息，查看输出内容
-        // 检查输出的行是否包含 apk_name
-        if (strstr(buffer, apk_name.c_str()) != nullptr) {
-            isRunning = true; // APK 正在运行
-            break; // 找到该进程后可以退出循环
-        }
-    }
-
-    fclose(fp);
-    return isRunning; // 返回是否找到对应的进程
-}
-
-void Thread_Tikok::start() {
-    // 启动线程
-    t = std::thread(&Thread_Tikok::run, this);  // 创建线程并绑定到成员函数
-}
-
-void Thread_Tikok::stop() {
-    // 停止线程
-    //running = false;
-    if (t.joinable()) {
-        t.join();  // 等待线程结束
-    }
-}
 void Thread_Tikok::ContentExtraction()
 {
     std::cout << std::boolalpha;
@@ -78,15 +45,10 @@ void Thread_Tikok::ContentExtraction()
 
     if( score > 0.8)
     {
-        contentType =LIVE_STREAMING;
+        std::cout << "当前内容: 直播     "<<std::endl;
     }
     else
     {
-        contentType =SHORT_VIDEO;
-    }
-    if (contentType == LIVE_STREAMING) {
-        std::cout << "当前内容: 直播     "<<std::endl;
-    } else if (contentType == SHORT_VIDEO) {
         std::cout << "当前内容: 短视频   " << std::endl;
     }
 
@@ -138,7 +100,7 @@ bool Thread_Tikok::checklogin()
     if(score >0.8)
     {
         cout << "账号需要登陆\n"<< endl;
-      //  INPUT_TAP(match);
+        //  INPUT_TAP(match);
         return true ;
     }
     else
@@ -548,6 +510,252 @@ int Thread_Tikok::SpecifyLivingRoomOnSite(string link)
         return -1;
     }
     return 0;
+}
+
+void Thread_Tikok::parseText(const string &text)
+{
+    ContentExtractor extractor;
+    auto [id, link, msg,mark] = extractor.extractContent(action.remark);
+
+    this->remark_link = link;
+    this->remark_id = id;
+    this->remark_mark = mark;
+    this->remark_msg = msg;
+#if 0
+    std::cout << "remark1: " << this->remark << std::endl;
+    std::cout << "id: " << id << std::endl;
+    std::cout << "link: " << link << std::endl;
+    std::cout << "msg: " << msg << std::endl;
+    std::cout << "mark: " << mark << std::endl;
+#endif
+
+}
+
+bool Thread_Tikok::onAppStart()
+{
+    applacationstate = AppState::STARTING;
+    turnon_application(APP_TIKTOK_ENUM);
+    while(1)
+    {
+        if(!isLogin)
+        {
+            cout << "账号需要登陆 ...." << endl;
+            return  false;
+        }
+
+        int var =0;
+        for (var = 0; var < 5; ++var)
+        {
+            if(LaunchToHomepage())
+            {
+                INPUT_BACK();
+                applacationstate = AppState::IDLE;
+                return true;
+            }
+
+            CheckUpgrade();
+            CheckFirstLaunch();
+            checklogin();
+        }
+        if(var >=4)
+        {
+            cout << "应用启动异常" <<endl;
+            applacationstate = AppState::ERROR;
+            return false;
+        }
+    }
+
+    selectTaskPreExec();
+}
+
+void Thread_Tikok::onAppExit()
+{
+
+}
+
+void Thread_Tikok::onStateChanged(ThreadState newState)
+{
+
+}
+
+bool Thread_Tikok::hasTask()
+{
+    selectTaskPreExec();
+    if(TASK_EXEC != TASK_UNKNOW && TASK_EXEC != TASK_NONE)
+        return true;
+
+    return false;
+}
+
+
+
+void Thread_Tikok::executeTask()
+{
+    applacationstate = AppState::BUSY;
+
+    if(TASK_EXEC == TASK_SEND_MESSAGE)
+    {
+        SendMessageToPerson(remark_id,remark_msg);
+        beatBack(10);
+        INPUT_HOME();
+        TASK_EXEC = TASK_NONE;
+    }
+    else if(TASK_EXEC == TASK_QUIT)
+    {
+
+        beatBack(10);
+        INPUT_HOME();
+        applacationstate = AppState::EXITING;
+
+        TASK_EXEC = TASK_NONE;
+    }
+    else if(TASK_EXEC == TASK_FOLLOW_MODE)
+    {
+
+
+        for (int i = 0; i < 3; ++i)
+        {
+            cout << "检查直播间三要素 >>>......\n" << endl;
+
+            if( isLivingRoom())
+            {
+                cout << "确认完毕 >>>......\n" << endl;
+                break;
+            }
+            else if (i>=2)
+            {
+                SpecifyLivingRoomOnSite(remark_link);
+                break;
+            }
+        }
+
+        SendBraggerForLivingRoom(remark_msg,false);
+        ad_point tap_cli ={612,20};//空点击
+        INPUT_TAP(tap_cli);
+        TASK_EXEC =TASK_FOLLOW_MODE_RUNNING;
+    }
+    else if(TASK_EXEC == TASK_FOLLOW_MODE_RUNNING)
+    {
+        int i =0;
+        for (i = 0; i < 3; ++i)
+        {
+            cout << "检查直播间三要素 >>>......\n" << endl;
+
+            if( isLivingRoom())
+            {
+                cout << "确认完毕 >>>......\n" << endl;
+                break;
+            }
+        }
+
+        if (i>=2)
+        {
+            TASK_EXEC =TASK_FOLLOW_MODE;
+            return ;
+        }
+
+
+        if(!ProhibitFollow_b)
+        {
+            if(RandomFollowUser() == -2)
+            {
+                TASK_EXEC =TASK_FOLLOW_MODE;
+            }
+            else if(RandomFollowUser() == -3)
+            {
+                ProhibitFollow_b =true;
+                beatBack(10);
+                INPUT_HOME();
+                TASK_EXEC = TASK_NONE;
+            }
+        }
+        SendBraggerForLivingRoom(remark_msg,true);
+    }
+    else if(TASK_EXEC == TASK_SCROLLING_MODE)
+    {
+
+        ScrollingShortVideos(1);
+        /*beatBack(10);
+                INPUT_HOME();
+                TASK_EXEC = NONE;
+                running = false;*/
+    }
+    else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE)
+    {
+
+
+        for (int i = 0; i < 3; ++i)
+        {
+            cout << "检查直播间三要素 >>>......\n" << endl;
+
+            if( isLivingRoom())
+            {
+                cout << "确认完毕 >>>......\n" << endl;
+                break;
+            }
+            else if (i>=2)
+            {
+                SpecifyLivingRoomOnSite(remark_link);
+                break;
+            }
+        }
+    }
+    else if(TASK_EXEC == TASK_LVIVINGROOM_BULLET)
+    {
+
+        for (int i = 0; i < 15; ++i)
+        {
+            cout << "检查直播间三要素 >>>......\n" << endl;
+
+            if( isLivingRoom())
+            {
+                cout << "确认完毕 >>>......\n" << endl;
+                break;
+            }
+            else if (i>=14)
+            {
+                SpecifyLivingRoomOnSite(remark_link);
+                break;
+            }
+        }
+
+        SendBraggerForLivingRoom(remark_msg,false);
+        TASK_EXEC = TASK_LVIVINGROOM_ONSITE;
+    }
+    else if(TASK_EXEC == TASK_CONTENT_OPTRATION)
+    {
+        CONTENT_OPT opt= 0;
+        if (remark_mark.find("点赞") != std::string::npos) {
+            std::cout << "需要点赞 .. " << std::endl;
+            opt |=GIVELIKE_OPT;
+        }
+        if (remark_mark.find("评论") != std::string::npos) {
+            std::cout << "需要评论 .. " << std::endl;
+            opt |=COMMENT_OPT;
+        }
+        if (remark_mark.find("收藏") != std::string::npos) {
+            std::cout << "需要收藏 .. " << std::endl;
+            opt |=FAVOURITE_OPT;
+        }
+        if (remark_mark.find("转发") != std::string::npos) {
+            std::cout << "需要转发 .. " << std::endl;
+            opt |=FORWARD_OPT;
+        }
+        if(SpecifyContentOperation(remark_link,opt,remark_msg) !=  0)
+        {
+
+            TASK_EXEC = TASK_NONE;
+        }
+        beatBack(10);
+        INPUT_HOME();
+        TASK_EXEC = TASK_NONE;
+    }
+    else
+    {
+        std::cout << "未知内容: " << action.remark << std::endl;
+        applacationstate = AppState::IDLE;
+
+    }
 }
 void Thread_Tikok::ContentForward()
 {
@@ -1472,276 +1680,6 @@ bool Thread_Tikok::LaunchToHomepage()
         }
     }
 }
-
-void Thread_Tikok::run()
-{
-    LONG_DELAY;
-    string msg;
-    running =false;
-    //CONTENT_OPT opt=GIVELIKE_OPT|COMMENT_OPT|FAVOURITE_OPT|FORWARD_OPT;
-    while (1)
-    {
-        if(!isLogin)
-        {
-            cout << "账号需要登陆 ...." << endl;
-
-            sleep(1);
-            continue;
-        }
-
-
-
-        if(COMMAND != NONE && running ==false)
-        {
-                // 构造函数
-                turnon_application(APP_TIKTOK_ENUM);
-                int var =0;
-                for (var = 0; var < 5; ++var)
-                {
-                    if(LaunchToHomepage())
-                    {
-                        INPUT_BACK();
-                        running =true;
-                        break;
-                    }
-                }
-                if(var >=4)
-                {
-                    cout << "应用启动异常" <<endl;
-                }
-        }
-        else if(COMMAND != NONE)
-        {
-            CheckUpgrade();
-
-            if(COMMAND == ACTING_COMMAND::SEND_MESSAGE)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-                SendMessageToPerson(id,msg);
-                beatBack(10);
-                INPUT_HOME();
-                COMMAND = NONE;
-                running = false;
-            }
-            if(COMMAND == ACTING_COMMAND::QUIT)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-                beatBack(10);
-                INPUT_HOME();
-                COMMAND = NONE;
-                running = false;
-            }
-            else if(COMMAND == ACTING_COMMAND::FOLLOW_MODE)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-
-                for (int i = 0; i < 3; ++i)
-                {
-                    cout << "检查直播间三要素 >>>......\n" << endl;
-
-                    if( isLivingRoom())
-                    {
-                        cout << "确认完毕 >>>......\n" << endl;
-                        break;
-                    }
-                    else if (i>=2)
-                    {
-                        SpecifyLivingRoomOnSite(link);
-                        break;
-                    }
-                }
-
-                SendBraggerForLivingRoom(msg,false);
-                ad_point tap_cli ={612,20};//空点击
-                INPUT_TAP(tap_cli);
-                COMMAND =ACTING_COMMAND::FOLLOW_MODE_RUNNING;
-            }
-            else if(COMMAND == ACTING_COMMAND::FOLLOW_MODE_RUNNING)
-            {
-                int i =0;
-                for (i = 0; i < 3; ++i)
-                {
-                    cout << "检查直播间三要素 >>>......\n" << endl;
-
-                    if( isLivingRoom())
-                    {
-                        cout << "确认完毕 >>>......\n" << endl;
-                        break;
-                    }
-                }
-
-                if (i>=2)
-                {
-                    COMMAND =ACTING_COMMAND::FOLLOW_MODE;
-                    continue;
-                }
-
-
-                if(!ProhibitFollow_b)
-                {
-                    if(RandomFollowUser() == -2)
-                    {
-                       COMMAND =ACTING_COMMAND::FOLLOW_MODE;
-                    }
-                    else if(RandomFollowUser() == -3)
-                    {
-                        ProhibitFollow_b =true;
-                        beatBack(10);
-                        INPUT_HOME();
-                        COMMAND = NONE;
-                        running = false;
-                    }
-                }
-                SendBraggerForLivingRoom(msg,true);
-            }
-            else if(COMMAND == ACTING_COMMAND::SCROLLING_MODE)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-                ScrollingShortVideos(1);
-                /*beatBack(10);
-                INPUT_HOME();
-                COMMAND = NONE;
-                running = false;*/
-            }
-            else if(COMMAND == ACTING_COMMAND::LVIVINGROOM_ONSITE)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-
-                for (int i = 0; i < 3; ++i)
-                {
-                    cout << "检查直播间三要素 >>>......\n" << endl;
-
-                    if( isLivingRoom())
-                    {
-                        cout << "确认完毕 >>>......\n" << endl;
-                        break;
-                    }
-                    else if (i>=2)
-                    {
-                        SpecifyLivingRoomOnSite(link);
-                        break;
-                    }
-                }
-            }
-            else if(COMMAND == ACTING_COMMAND::LVIVINGROOM_BULLET)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-                for (int i = 0; i < 15; ++i)
-                {
-                    cout << "检查直播间三要素 >>>......\n" << endl;
-
-                    if( isLivingRoom())
-                    {
-                        cout << "确认完毕 >>>......\n" << endl;
-                        break;
-                    }
-                    else if (i>=14)
-                    {
-                        SpecifyLivingRoomOnSite(link);
-                        break;
-                    }
-                }
-
-                SendBraggerForLivingRoom(msg,false);
-                COMMAND = ACTING_COMMAND::LVIVINGROOM_ONSITE;
-            }
-            else if(COMMAND == ACTING_COMMAND::CONTENT_OPTRATION)
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "remark1: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-                CONTENT_OPT opt= 0;
-                if (mark.find("点赞") != std::string::npos) {
-                    std::cout << "需要点赞 .. " << std::endl;
-                    opt |=GIVELIKE_OPT;
-                }
-                if (mark.find("评论") != std::string::npos) {
-                    std::cout << "需要评论 .. " << std::endl;
-                    opt |=COMMENT_OPT;
-                }
-                if (mark.find("收藏") != std::string::npos) {
-                    std::cout << "需要收藏 .. " << std::endl;
-                    opt |=FAVOURITE_OPT;
-                }
-                if (mark.find("转发") != std::string::npos) {
-                    std::cout << "需要转发 .. " << std::endl;
-                    opt |=FORWARD_OPT;
-                }
-                if(SpecifyContentOperation(link,opt,msg) !=  0)
-                {
-
-                    COMMAND = NONE;
-                }
-                beatBack(10);
-                INPUT_HOME();
-                COMMAND = NONE;
-                running = false;
-            }
-            else
-            {
-                ContentExtractor extractor;
-                auto [id, link, msg,mark] = extractor.extractContent(this->remark);
-                std::cout << "未知内容: " << this->remark << std::endl;
-                std::cout << "id: " << id << std::endl;
-                std::cout << "link: " << link << std::endl;
-                std::cout << "msg: " << msg << std::endl;
-                std::cout << "mark: " << mark << std::endl;
-            }
-        }
-
-
-       // cout << "running  <<<< ....."<<COMMAND <<endl;
-       // sleep(1);
-#if 0
-
-
-#endif
-    }
-
-}
-int getRandomInRange(int min, int max) {
-    return rand() % (max - min + 1) + min;
-}
 void Thread_Tikok::scrollingUP()
 {
     // 给start和end坐标添加随机抖动
@@ -1753,10 +1691,6 @@ void Thread_Tikok::scrollingUP()
 
     // 执行滑动操作
     INPUT_SWIPE(start, end, duration);
-}
-void Thread_Tikok::turnoffAPP()
-{
-
 }
 void Thread_Tikok::scrollingDown()
 {
@@ -1770,3 +1704,77 @@ void Thread_Tikok::scrollingDown()
     // 执行滑动操作
     INPUT_SWIPE(start, end, duration);
 }
+
+void Thread_Tikok::selectTaskPreExec()
+{
+    if (action.sub_action == "私信")
+    {
+        TASK_EXEC = TASK_SEND_MESSAGE;
+    }
+    else if (action.sub_action == "直播")
+    {
+        TASK_EXEC = TASK_LVIVINGROOM_ONSITE;
+    }
+    else if (action.sub_action == "评论")
+    {
+        TASK_EXEC = TASK_CONTENT_OPTRATION;
+    }
+    else if (action.sub_action == "关注")
+    {
+        TASK_EXEC = TASK_FOLLOW_SOMEONE;
+    }
+    else if (action.sub_action == "弹幕")
+    {
+        TASK_EXEC = TASK_LVIVINGROOM_BULLET;
+    }
+    else if (action.sub_action == "退出")
+    {
+        TASK_EXEC= TASK_QUIT;
+    }
+    else if (action.sub_action == "互粉")
+    {
+        TASK_EXEC = TASK_FOLLOW_MODE;
+    }
+    else if (action.sub_action == "刷视频")
+    {
+        TASK_EXEC = TASK_SCROLLING_MODE;
+    }
+    else
+    {
+        TASK_EXEC = TASK_UNKNOW;
+    }
+
+    cout << "准备启动活动: "<<action.sub_action <<"【" << action.start_time << " - " << action.end_time << "】"<<endl;
+}
+
+#if 0
+
+bool ClearFinishedCommand(Dev_Action & action, class APP_TIKTOK &app_tiktok)
+{
+    if(action.isRunning&& action.action=="抖音"&&app_tiktok.COMMAND ==APP_TIKTOK::ACTING_COMMAND::NONE)
+    {//todo
+        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
+        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+        return true;
+    }
+    if(action.isRunning&& action.action=="抖音"&&action.sub_action=="私信"&&app_tiktok.COMMAND !=APP_TIKTOK::ACTING_COMMAND::SEND_MESSAGE)
+    {//todo
+        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
+        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+        return true;
+    }
+    if(action.isRunning&& action.action=="抖音"&&action.sub_action=="弹幕"&&app_tiktok.COMMAND !=APP_TIKTOK::ACTING_COMMAND::LVIVINGROOM_BULLET)
+    {//todo
+        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
+        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+        return true;
+    }
+    if(action.isRunning&& action.action=="抖音"&&action.sub_action=="评论"&&app_tiktok.COMMAND !=APP_TIKTOK::ACTING_COMMAND::CONTENT_OPTRATION)
+    {//todo
+        std::cout << "活动已经提前结束:"<<action.action << action.sub_action<< std::endl;
+        std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
+        return true;
+    }
+    return false;;
+}
+#endif

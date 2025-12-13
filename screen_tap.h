@@ -1,7 +1,7 @@
 #ifndef SCREEN_TAP_H   // 判断是否已经定义过 MACHINE_VISION_H
 #define SCREEN_TAP_H   // 如果没有定义过，则定义它
 
-#include "pulic_def.h"
+#include "public_def.h"
 
 
 int INPUT_TAP(ad_point);
