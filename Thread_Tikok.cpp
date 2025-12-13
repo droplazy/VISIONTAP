@@ -153,7 +153,7 @@ bool Thread_Tikok::CheckLaunching()
     ad_point match = FindPicTarget(targetImage, templateImage, score);
     if(score >0.8)
     {
-        cout << "应用启动中....\n"<< endl;
+        cout << "应用启动中...."<<score << endl;
         return false;
 
     }
@@ -550,6 +550,8 @@ bool Thread_Tikok::onAppStart()
             {
                 INPUT_BACK();
                 applacationstate = AppState::IDLE;
+                selectTaskPreExec();
+
                 return true;
             }
 
@@ -565,7 +567,6 @@ bool Thread_Tikok::onAppStart()
         }
     }
 
-    selectTaskPreExec();
 }
 
 void Thread_Tikok::onAppExit()
@@ -578,11 +579,15 @@ void Thread_Tikok::onStateChanged(ThreadState newState)
 
 }
 
-bool Thread_Tikok::hasTask()
+bool Thread_Tikok::hasTask() //这是轮询标志
 {
-    selectTaskPreExec();
-    if(TASK_EXEC != TASK_UNKNOW && TASK_EXEC != TASK_NONE)
+
+    if(TASK_EXEC != TASK_UNKNOW && TASK_EXEC != TASK_NONE&& TASK_EXEC != TASK_COMPELTED)
         return true;
+    else if(TASK_EXEC==TASK_COMPELTED)
+    {
+        applacationstate = AppState::EXITING;
+    }
 
     return false;
 }
@@ -598,21 +603,18 @@ void Thread_Tikok::executeTask()
         SendMessageToPerson(remark_id,remark_msg);
         beatBack(10);
         INPUT_HOME();
-        TASK_EXEC = TASK_NONE;
+
+        TASK_EXEC = TASK_COMPELTED;
     }
     else if(TASK_EXEC == TASK_QUIT)
     {
-
         beatBack(10);
         INPUT_HOME();
-        applacationstate = AppState::EXITING;
-
-        TASK_EXEC = TASK_NONE;
+     //   applacationstate = AppState::EXITING;
+        TASK_EXEC = TASK_COMPELTED;
     }
     else if(TASK_EXEC == TASK_FOLLOW_MODE)
     {
-
-
         for (int i = 0; i < 3; ++i)
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
@@ -666,7 +668,7 @@ void Thread_Tikok::executeTask()
                 ProhibitFollow_b =true;
                 beatBack(10);
                 INPUT_HOME();
-                TASK_EXEC = TASK_NONE;
+                TASK_EXEC = TASK_COMPELTED;
             }
         }
         SendBraggerForLivingRoom(remark_msg,true);
@@ -675,15 +677,9 @@ void Thread_Tikok::executeTask()
     {
 
         ScrollingShortVideos(1);
-        /*beatBack(10);
-                INPUT_HOME();
-                TASK_EXEC = NONE;
-                running = false;*/
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE)
     {
-
-
         for (int i = 0; i < 3; ++i)
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
@@ -702,11 +698,9 @@ void Thread_Tikok::executeTask()
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_BULLET)
     {
-
         for (int i = 0; i < 15; ++i)
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
-
             if( isLivingRoom())
             {
                 cout << "确认完毕 >>>......\n" << endl;
@@ -744,17 +738,16 @@ void Thread_Tikok::executeTask()
         if(SpecifyContentOperation(remark_link,opt,remark_msg) !=  0)
         {
 
-            TASK_EXEC = TASK_NONE;
+            TASK_EXEC = TASK_COMPELTED;
         }
         beatBack(10);
         INPUT_HOME();
-        TASK_EXEC = TASK_NONE;
+        TASK_EXEC = TASK_COMPELTED;
     }
     else
     {
         std::cout << "未知内容: " << action.remark << std::endl;
         applacationstate = AppState::IDLE;
-
     }
 }
 void Thread_Tikok::ContentForward()

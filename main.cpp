@@ -80,31 +80,39 @@ int main()
         else if(currentAct != nullptr)
         {
             SchedulingProcess(currentAct,p_applation);
-
+        //安全退出线程 方法  先等app状态标志为退出成功后在这里 调用safestop 重要
         //cout << "当前活动:" << currentAct->sub_action <<endl;
         if(p_applation!= nullptr)
         {
-            switch(p_applation->applacationstate) {
-            case ThreadBase::AppState::STARTING:
-                cout << "[DEBUG] App状态: STARTING (启动中)" << endl;
-                break;
-            case ThreadBase::AppState::IDLE:
-                cout << "[DEBUG] App状态: IDLE (空闲中)" << endl;
-                break;
-            case ThreadBase::AppState::BUSY:
-                cout << "[DEBUG] App状态: BUSY (忙碌中)" << endl;
-                break;
-            case ThreadBase::AppState::EXITING:
-                cout << "[DEBUG] App状态: EXITING (退出中)" << endl;
-                break;
-            case ThreadBase::AppState::ERROR:
-                cout << "[ERROR] App状态: ERROR (错误状态)" << endl;
-                break;
-            default:
-                cout << "[WARN] App状态: UNKNOWN (未知状态)" << endl;
-                break;
+            if(p_applation->applacationstate ==ThreadBase::AppState::EXITING)
+            {
+                cout <<"线程已经退出..." <<endl;
+                p_applation->safeStop();
+                p_applation =nullptr;
             }
-
+            else
+            {
+                switch(p_applation->applacationstate) {
+                case ThreadBase::AppState::STARTING:
+                    cout << "[DEBUG] App状态: STARTING (启动中)" << endl;
+                    break;
+                case ThreadBase::AppState::IDLE:
+                    cout << "[DEBUG] App状态: IDLE (空闲中)" << endl;
+                    break;
+                case ThreadBase::AppState::BUSY:
+                    cout << "[DEBUG] App状态: BUSY (忙碌中)" << endl;
+                    break;
+                case ThreadBase::AppState::EXITING:
+                    cout << "[DEBUG] App状态: EXITING (退出中)" << endl;
+                    break;
+                case ThreadBase::AppState::ERROR:
+                    cout << "[ERROR] App状态: ERROR (错误状态)" << endl;
+                    break;
+                default:
+                    cout << "[WARN] App状态: UNKNOWN (未知状态)" << endl;
+                    break;
+                }
+            }
         }
         else
         {
@@ -128,6 +136,10 @@ int main()
 }
 
 #if 0
+
+
+
+
         TraverActionsVector(actions_vector,currentAct);
 
         if (currentAct != nullptr) {
