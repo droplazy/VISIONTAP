@@ -723,6 +723,8 @@ void Thread_Tikok::executeTask()
             if( ret>=3)
             {
                 cout << "正在直播间："<<remark_link << endl;
+                randomCickScreen();
+
             }
             else if(ret <0)
             {
