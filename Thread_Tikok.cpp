@@ -521,10 +521,13 @@ int Thread_Tikok::SpecifyLivingRoomOnSite(string link)
 void Thread_Tikok::TaskUpdate(Dev_Action task)
 {
     parseText(task.remark);
-    selectTaskPreExec();
     action = task;
 
-    cout << "活动已经更新   --> " <<  action.sub_action<< endl;
+    selectTaskPreExec();
+
+    cout << "活动已经更新   --> "  <<   action.sub_action<< endl;
+    cout << "状态码   --> "  <<   TASK_EXEC<< endl;
+
 }
 
 void Thread_Tikok::parseText(const string &text)
@@ -629,6 +632,8 @@ void Thread_Tikok::executeTask()
 {
     applacationstate = AppState::BUSY;
 
+    cout <<"tictok state:" <<TASK_EXEC <<endl;
+
     if(TASK_EXEC == TASK_SEND_MESSAGE)
     {
         SendMessageToPerson(remark_id,remark_msg);
@@ -712,12 +717,12 @@ void Thread_Tikok::executeTask()
     {
         ScrollingShortVideos(1);
     }
-    else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE)
+    else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE || TASK_EXEC == TASK_LVIVINGROOM_BULLET_SENT)
     {
-        int ret = isLivingRoom();
+          int ret = isLivingRoom();
             if( ret>=3)
             {
-             //   cout << "正在直播间："<<remark_link << endl;
+                cout << "正在直播间："<<remark_link << endl;
             }
             else if(ret <0)
             {
@@ -725,6 +730,19 @@ void Thread_Tikok::executeTask()
             }
             else
             {
+                ret = isLivingRoom();
+                if( ret>=3)
+                {
+                    cout << "正在直播间："<<remark_link << endl;
+                    randomCickScreen();
+
+
+                }
+                else if(ret <0)
+                {
+                    TASK_EXEC =TASK_COMPELTED;
+                }
+
                 if(SpecifyLivingRoomOnSite(remark_link) ==-1)
                 {
                     TASK_EXEC =TASK_COMPELTED;
@@ -739,7 +757,7 @@ void Thread_Tikok::executeTask()
             {
                 cout << "确认完毕 >>>......\n" << endl;
                 SendBraggerForLivingRoom(remark_msg,false);
-                TASK_EXEC = TASK_LVIVINGROOM_ONSITE;
+                TASK_EXEC = TASK_LVIVINGROOM_BULLET_SENT;
             }
             else if(ret <0)
             {
@@ -1678,7 +1696,7 @@ bool Thread_Tikok::LaunchToHomepage()
                 isLogin = false;
                 return false;
             }
-            usleep(500*1000);
+            beatBack(6);
 
         }
         if(var >=10)

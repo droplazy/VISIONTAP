@@ -20,13 +20,13 @@ void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
 
         if(currentAct->action == "抖音" && p_thread == nullptr)
         {
-         //   p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
-         //   p_thread->start();
+            p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
+            p_thread->start();
         }
         else if(currentAct->action == "抖音" && p_thread != nullptr && \
                    (currentAct->sub_action=="弹幕" || currentAct->sub_action=="退出" ))
         {
-         //   p_thread->TaskUpdate(*currentAct);
+            p_thread->TaskUpdate(*currentAct);
         }
 
     }
@@ -97,6 +97,7 @@ int main()
             //cout << "当前活动:" << currentAct->sub_action <<endl;
             if(p_applation!= nullptr)
             {
+
                 if(p_applation->applacationstate ==ThreadBase::AppState::EXITING)
                 {
                     cout <<"线程已经退出..." <<endl;
@@ -104,19 +105,33 @@ int main()
                     p_applation =nullptr;
                     currentAct->compeleted = true;
                 }
-                else
-                {
 
+                if(currentAct->sub_action == "弹幕"&& currentAct->action == "抖音")
+                {
+                    Thread_Tikok* p_tikok = static_cast<Thread_Tikok*>(p_applation);//TODO 感觉强转失败了
+                    if(p_tikok->TASK_EXEC == Thread_Tikok::TASK_LVIVINGROOM_BULLET_SENT)
+                    {
+                        currentAct->sub_action = "直播";
+                        p_tikok->TASK_EXEC = Thread_Tikok::TASK_LVIVINGROOM_ONSITE;
+                        cout << "已经更新状态为直播"<<endl;
+                    }
+                 //   cout << currentAct->sub_action <<endl;
+                //    cout <<"state:" <<p_tikok->TASK_EXEC <<endl;
                 }
+               // currentAct->print();
             }
             else
             {
                 cout << "p_applation 指针为空" <<endl;
+                if(currentAct->compeleted)
+                {
+                    currentAct =nullptr;
+                }
             }
             //  currentAct->print();
-            cout << currentAct->sub_action <<endl;
-            cout << currentAct->end_time <<endl;
-             cout << currentAct->isRunning <<endl;
+            // cout << currentAct->sub_action <<endl;
+            // cout << currentAct->end_time <<endl;
+            // cout << currentAct->isRunning <<endl;
 
         }
         else
@@ -125,9 +140,9 @@ int main()
         }
 
         pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
-         cout << "*********************" <<endl;
-        printSubActions(actions_vector); //打印出所有任务队列
-         cout << "+++++++++++++++++++++" <<endl;
+        //  cout << "*********************" <<endl;
+        // printSubActions(actions_vector); //打印出所有任务队列
+        //  cout << "+++++++++++++++++++++" <<endl;
 
         sleep(1);
     }
