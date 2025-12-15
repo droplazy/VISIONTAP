@@ -161,9 +161,7 @@ int main()
             // devicedata.current_action.end_time = currentAct->end_time;
 
             string msg =GetdeviceInfoAndresJson(currentAct);
-
-
-        //    mqttClient.pubMessage(msg);
+            mqttClient.pubMessage(msg);
             last_time = current_time;  // 更新上次调用时间
         }
         sleep(1);
