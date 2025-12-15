@@ -1191,6 +1191,11 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
             turnon_application(APP_TIKTOK_ENUM);
             SHORT_DELAY;
             cout << "未能打开链接  重试.."<< endl;
+            if(CopyTextFormSys(content))
+            {
+                continue;
+            }
+            turnon_application(APP_TIKTOK_ENUM);
 
         }
         else
