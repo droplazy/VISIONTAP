@@ -124,23 +124,21 @@ bool Thread_Tikok::ShowMyHomepage()
     INPUT_TAP(clickp);
     LONG_DELAY;
 
-
-
-    snap_screen();
-
-    cv::Mat targetImage = cv::imread("/data/machine_vision/background.png");  // 读取目标图像
-    cv::Mat templateImage = cv::imread(TIKTOK_HOMEPAGE_CV); // 读取模板图像
-    double score;
-    ad_point match = FindPicTarget(targetImage, templateImage, score);
-    if(score >0.8)
+    double score= 0.0f;
+    ad_point match = FindTargetForDelay(TIKTOK_HOMEPAGE_CV,score,5);
+    if(match.x == -1 || match.y == -1)
     {
-        cout << "进入个人主页成功\n"<< endl;
-        return true;
+       cout << "进入个人主页失败\n"<< endl;
 
+       return false;
     }
-    cout << "进入个人主页失败\n"<< endl;
-
+    else
+    {
+        cout << "进入个人主页成功 "<< score << endl;
+        return true;
+    }
     return false;
+
 }
 
 bool Thread_Tikok::CheckLaunching()
@@ -306,15 +304,56 @@ bool Thread_Tikok::SearchShortVelement(ad_point &like,ad_point &comment ,ad_poin
         {
 
             cout << "ele 2 _ score:" << score << " bad score,try another template\n" <<endl;
+            templateImage = cv::imread("/data/machine_vision/apppic/shortvideo_ele_3.png");
+
             match = FindPicTargetWithMask(simple, templateImage,templateImage, score);
             if(score< 0.8 )
             {
-
                 cout << "ele 3 _ score:" << score << " bad score,try another template\n" <<endl;
+                templateImage = cv::imread("/data/machine_vision/apppic/shortvideo_ele_4.png");
+                match = FindPicTargetWithMask(simple, templateImage,templateImage, score);
+                if(score< 0.8 )
+                {
+
+                    cout << "ele_4 _ score:" << score << " cannot locate!!!!\n" <<endl;
+                    templateImage = cv::imread("/data/machine_vision/apppic/shortvideo_ele_5.png");
+                    match = FindPicTargetWithMask(simple, templateImage,templateImage, score);
+                    if(score< 0.8 )
+                    {
+
+                        cout << "ele_5 _ score:" << score << " cannot locate!!!!\n" <<endl;
 
 
-                finalscore =score;
-                return false;
+                        finalscore =score;
+                        return false;
+                    }
+                    else
+                    {
+                        cout << "score:" << score << "match: "<< match.x << "," <<match.y<<"\n" <<endl;
+                        like.x =  match.x+15+973;
+                        comment.x =  match.x+15+973;
+                        farvour.x =  match.x+15+973;
+                        forward.x =  match.x+15+973;
+                        like.y    =  match.y+13+130;
+                        comment.y =  match.y+80+130;
+                        farvour.y =  match.y+144+130;
+                        forward.y =  match.y+213+130;
+                        finalscore =score;
+                    }
+                }
+                else
+                {
+                    cout << "score:" << score << "match: "<< match.x << "," <<match.y<<"\n" <<endl;
+                    like.x =  match.x+13+973;
+                    comment.x =  match.x+13+973;
+                    farvour.x =  match.x+13+973;
+                    forward.x =  match.x+13+973;
+                    like.y    =  match.y+10+130;
+                    comment.y =  match.y+70+130;
+                    farvour.y =  match.y+130+130;
+                    forward.y =  match.y+180+130;
+                    finalscore =score;
+                }
             }
             else
             {
@@ -353,10 +392,10 @@ bool Thread_Tikok::SearchShortVelement(ad_point &like,ad_point &comment ,ad_poin
         comment.x =  match.x+13+973;
         farvour.x =  match.x+13+973;
         forward.x =  match.x+13+973;
-        like.y =  match.y+8+188;
-        comment.y =  match.y+61+188;
-        farvour.y =  match.y+116+188;
-        forward.y =  match.y+168+188;
+        like.y =  match.y+8+130;
+        comment.y =  match.y+61+130;
+        farvour.y =  match.y+116+130;
+        forward.y =  match.y+168+130;
         finalscore =score;
     }
     if(isnan(score))
@@ -409,14 +448,7 @@ void Thread_Tikok::ScrollingShortVideos(int clycles)
                 cout <<"给予点赞\n" << endl;
                 RandomShortVideoOperation(like,GIVELIKE_OPT,"");
             }
-            usleep(500*1000);
-            if(randomNum>>1 & 0x01)
-            {
-                cout <<"给予评论\n" << endl;
 
-                RandomShortVideoOperation(comment,COMMENT_OPT,"🌹🌹🌹");
-                beatBack(5);
-            }
             usleep(500*1000);
 
             if(randomNum>>2 & 0x01)
@@ -426,7 +458,14 @@ void Thread_Tikok::ScrollingShortVideos(int clycles)
                 RandomShortVideoOperation(farvour,FAVOURITE_OPT,"");
             }
             usleep(500*1000);
+            usleep(500*1000);
+            if(randomNum>>1 & 0x01)
+            {
+                cout <<"给予评论\n" << endl;
 
+                RandomShortVideoOperation(comment,COMMENT_OPT,"🌹🌹🌹");
+                beatBack(1);
+            }
             if(randomNum>>3 & 0x01)
             {
                 cout <<"给予转发\n" << endl;
@@ -495,14 +534,20 @@ int Thread_Tikok::SpecifyContentOperation(string link,CONTENT_OPT opt,string com
     if(!ret && (opt&FAVOURITE_OPT))
     {
         RandomShortVideoOperation(click_p.favour,FAVOURITE_OPT,"");
+        SHORT_DELAY;
+
     }
     if(!ret && (opt&FORWARD_OPT))
     {
         RandomShortVideoOperation(click_p.forward,FORWARD_OPT,"");
+        SHORT_DELAY;
+
     }
     if(!ret && (opt&COMMENT_OPT))
     {
         RandomShortVideoOperation(click_p.comment,COMMENT_OPT,comment);
+        SHORT_DELAY;
+
     }
     beatBack(5);
     return 0;
@@ -604,6 +649,8 @@ void Thread_Tikok::onAppExit()
     start.y+=400;
     INPUT_SWIPE(start,match,220);
     cout << "APP已经完全退出" <<endl;
+    INPUT_HOME();
+    SHORT_DELAY;
     INPUT_HOME();
 
 }
@@ -1256,10 +1303,12 @@ int Thread_Tikok::enterSpecifyContent(string content ,ad_operations &opt_point)
         {
             INPUT_HOME();
             SHORT_DELAY;
-            turnon_application(APP_TIKTOK_ENUM);
             SHORT_DELAY;
             cout << "未能打开链接  重试.."<< endl;
             CopyTextFormSys(content);
+
+            turnon_application(APP_TIKTOK_ENUM);
+
         }
         else
         {

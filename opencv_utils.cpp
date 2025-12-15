@@ -26,6 +26,14 @@ void snap_screen()//重新生成背景图片
     //usleep(1500*1000);
 
 }
+// std::string getTimestamp() {
+//     std::time_t now = std::time(nullptr);
+//     std::tm* tm = std::localtime(&now);
+//     char buffer[20];
+//     std::strftime(buffer, sizeof(buffer), "%Y%m%d_%H%M%S", tm);
+//     return std::string(buffer);
+// }
+
 ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage, cv::Mat MaskImage, double &Score)
 {
     // 检查图像是否为空
@@ -47,16 +55,6 @@ ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage, cv::M
     //     std::cerr << "掩模图像大小与目标图像不一致！"<<  << std::endl;
     //     return ad_point{-1, -1};
     // }
-#if 0
-    // 打印图像的通道数量
-    std::cout << "Target Image Channels: " << targetImage.channels() << std::endl;
-    std::cout << "Template Image Channels: " << templateImage.channels() << std::endl;
-    std::cout << "Mask Image Channels: " << MaskImage.channels() << std::endl;
-
-    std::cout << "Target Grey Channels: " << targetGray.channels() << std::endl;
-    std::cout << "Template Grey Channels: " << templateGray.channels() << std::endl;
-    std::cout << "Mask Grey Channels: " << MaskGray.channels() << std::endl;
-#endif
     // 执行模板匹配，使用掩模图像
     cv::Mat result;
     cv::matchTemplate(targetGray, templateGray, result, cv::TM_CCOEFF_NORMED, MaskGray);
@@ -92,7 +90,18 @@ ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage, cv::M
     }
     */
     // 保存调试图像到本地
-    cv::imwrite("debug_image_with_red_box.jpg", debugImage);
+    static int sequenceNumber = 0; // 静态变量用于跟踪序号
+    sequenceNumber++; // 每次调用接口时+1
+
+    std::string timestamp = getTimestamp();
+
+    std::string debugImageFilename = "debug_image_with_red_box_" + timestamp + "_" + std::to_string(sequenceNumber) + ".jpg";
+    std::string targetImageFilename = "cropImage_" + timestamp + "_" + std::to_string(sequenceNumber) + ".jpg";
+
+    std::cout << "ele_score: " << Score << " X: " << maxLoc.x << " Y: " << maxLoc.y << " " << timestamp << " Sequence: " << sequenceNumber << std::endl;
+
+    cv::imwrite(debugImageFilename, debugImage);
+    cv::imwrite(targetImageFilename, targetImage);
 
 #endif
 

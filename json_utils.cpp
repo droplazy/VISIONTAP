@@ -29,11 +29,13 @@ std::string generateHeartbeatJson(const HeartbeatMessage& heartbeat) {
          << "      \"start_time\": \"" << heartbeat.data.current_action.start_time << "\",\n"
          << "      \"end_time\": \"" << heartbeat.data.current_action.end_time << "\"\n"
          << "    },\n"
+#if 0
          << "    \"next_action\": {\n"
          << "      \"name\": \"" << heartbeat.data.next_action.name << "\",\n"
          << "      \"start_time\": \"" << heartbeat.data.next_action.start_time << "\",\n"
          << "      \"end_time\": \"" << heartbeat.data.next_action.end_time << "\"\n"
          << "    },\n"
+#endif
          << "    \"ip\": \"" << heartbeat.data.ip << "\",\n"
          << "    \"temperature\": " << heartbeat.data.temperature << ",\n"
          << "    \"boot_time\": \"" << heartbeat.data.boot_time << "\",\n"
@@ -260,7 +262,7 @@ string extract_json_field(const string& json_data, const string& field_name) {
     }
     return json_data.substr(pos + 1, end_pos - pos - 1);
 }
-std::string GetdeviceInfoAndresJson()//TODO
+std::string GetdeviceInfoAndresJson(Dev_Action *cur)//TODO
 {
     DeviceData devicedata;
     NetworkInfo netinfo =getNetworkInfo("wlan0");
@@ -277,6 +279,19 @@ std::string GetdeviceInfoAndresJson()//TODO
     HeartbeatMessage heartbeat;
     heartbeat.timestamp =getUtcTimestamp();
     heartbeat.messageType="heart";
+    if(cur != nullptr)
+    {
+    devicedata.current_action.name = cur->action;
+    devicedata.current_action.start_time = cur->start_time;
+    devicedata.current_action.end_time = cur->end_time;
+    }
+    else
+    {
+        devicedata.current_action.name = "空闲";
+        devicedata.current_action.start_time = "00:00:00";
+        devicedata.current_action.end_time = "00:00:00";
+
+    }
     heartbeat.data =devicedata;
 
     return generateHeartbeatJson(heartbeat);
@@ -373,7 +388,13 @@ void printActions(const vector<Dev_Action>& actions) {
 void clearActions(vector<Dev_Action>& actions) {
     actions.clear(); // 清空所有元素
 }
-
+std::string getTimestamp() {
+    std::time_t now = std::time(nullptr);
+    std::tm* tm = std::localtime(&now);
+    char buffer[20];
+    std::strftime(buffer, sizeof(buffer), "%Y%m%d_%H%M%S", tm);
+    return std::string(buffer);
+}
 
 void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
 {

@@ -3,7 +3,7 @@
 
 #include "public_def.h"
 #include "opencv2/opencv.hpp"  // 引入 OpenCV 库
-
+#include "json_utils.h"
 void snap_screen();
 ad_point FindPicTarget(cv::Mat targetImage, cv::Mat templateImage, double &Score);
 ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage,cv::Mat MaskImage, double &Score);

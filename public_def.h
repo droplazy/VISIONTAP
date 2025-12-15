@@ -83,7 +83,7 @@ struct Dev_Action {
 struct DeviceData {
     //  string status;               // 设备状态（在线/离线）
     Action current_action;            // 当前动作
-    Action next_action;               // 下一步动作
+   // Action next_action;               // 下一步动作
     string ip;                   // 设备当前IP地址
     string  temperature;                  // 当前温度
     string boot_time;            // 设备开机时间

@@ -103,25 +103,21 @@ bool MqttThread::isMessageComing( std::string &topic, std::string &message)
     return false;;
 }
 
+bool MqttThread::pubMessage(string msg)
+{
+    return publish(publish_topic_, msg, 0);
+
+}
+
 void MqttThread::run() {
     connectToBroker();
-    auto last_time = std::chrono::steady_clock::now();
+
 
     while (running_) {
         int ret = mosquitto_loop(mosq_, 1000, 1);
         if (ret != MOSQ_ERR_SUCCESS) {
             std::cerr << "Mosquitto loop error: " << mosquitto_strerror(ret) << std::endl;
             reconnect();
-        }
-
-        // 获取当前时间
-        auto current_time = std::chrono::steady_clock::now();
-
-        // 判断是否已经过去了3秒
-        if (std::chrono::duration_cast<std::chrono::seconds>(current_time - last_time).count() >= 5) {
-            // 每3秒调用一次publishHeart()
-            publish(publish_topic_,GetdeviceInfoAndresJson(),0);
-            last_time = current_time;  // 更新上次调用时间
         }
 
     }

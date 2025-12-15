@@ -7,6 +7,7 @@
 #include <string>
 #include <chrono>
 #include <mutex>
+#include "public_def.h"
 
 class MqttThread {
 public:
@@ -22,6 +23,8 @@ public:
     void setMessageCallback(void (*callback)(const std::string &topic, const std::string &message));
     void setReconnectCallback(void (*callback)(void));
     bool isMessageComing(std::string &topic, std::string &message);
+
+    bool pubMessage(string msg);
 private:
     void run();
     void connectToBroker();

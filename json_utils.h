@@ -33,7 +33,7 @@ using namespace std;
  std::string getUptime() ;
  string check_message_type(const string& json_data);
  string extract_json_field(const string& json_data, const string& field_name);
- std::string GetdeviceInfoAndresJson();
+ std::string GetdeviceInfoAndresJson(Dev_Action *cur);
  void printActions(const vector<Dev_Action>& actions);
  void parseDataArray(const string& json, vector<Dev_Action>& actions);
  string extractString(const string& json, const string& key);
@@ -44,5 +44,5 @@ using namespace std;
  int compareTime(const std::string& target);
  // void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *p_thread);
  int getRandomInRange(int min, int max) ;
-
+ std::string getTimestamp();
 #endif // OPENCV_UTILS_H

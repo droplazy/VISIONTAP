@@ -66,7 +66,6 @@ void printSubActions(const vector<Dev_Action>& actions_vector) {
 
 int main()
 {
-    DeviceData devicedata ;
     ThreadBase *p_applation =nullptr;
     vector<Dev_Action> actions_vector;
     actions_vector.reserve(24);
@@ -77,6 +76,9 @@ int main()
     string mqtt_message;
     struct Dev_Action *currentAct = nullptr;
     bool aaa =false;
+
+
+    auto last_time = std::chrono::steady_clock::now();
     // 主循环：任务调度
     while (1)
     {
@@ -144,6 +146,26 @@ int main()
         // printSubActions(actions_vector); //打印出所有任务队列
         //  cout << "+++++++++++++++++++++" <<endl;
 
+
+
+
+        // 获取当前时间
+        auto current_time = std::chrono::steady_clock::now();
+
+        // 判断是否已经过去了3秒
+        if (std::chrono::duration_cast<std::chrono::seconds>(current_time - last_time).count() >= 5) {
+            // 每3秒调用一次publishHeart()
+            // DeviceData devicedata ;
+            // devicedata.current_action.name = currentAct->action;
+            // devicedata.current_action.start_time = currentAct->start_time;
+            // devicedata.current_action.end_time = currentAct->end_time;
+
+            string msg =GetdeviceInfoAndresJson(currentAct);
+
+
+        //    mqttClient.pubMessage(msg);
+            last_time = current_time;  // 更新上次调用时间
+        }
         sleep(1);
     }
 
