@@ -128,9 +128,9 @@ bool Thread_Tikok::ShowMyHomepage()
     ad_point match = FindTargetForDelay(TIKTOK_HOMEPAGE_CV,score,5);
     if(match.x == -1 || match.y == -1)
     {
-       cout << "进入个人主页失败\n"<< endl;
+        cout << "进入个人主页失败\n"<< endl;
 
-       return false;
+        return false;
     }
     else
     {
@@ -663,12 +663,16 @@ void Thread_Tikok::onStateChanged(ThreadState newState)
 bool Thread_Tikok::hasTask() //这是轮询标志
 {
 
-    if(TASK_EXEC != TASK_UNKNOW && TASK_EXEC != TASK_NONE&& TASK_EXEC != TASK_COMPELTED)
-        return true;
-    else if(TASK_EXEC==TASK_COMPELTED)
+    if(TASK_EXEC==TASK_COMPELTED)
     {
         applacationstate = AppState::EXITING;
     }
+    else if(TASK_EXEC==TASK_EXEC_FAILD)
+    {
+        applacationstate = AppState::ERROR;
+    }
+    else if(TASK_EXEC != TASK_UNKNOW && TASK_EXEC != TASK_NONE )
+        return true;
 
     return false;
 }
@@ -683,17 +687,13 @@ void Thread_Tikok::executeTask()
 
     if(TASK_EXEC == TASK_SEND_MESSAGE)
     {
-        SendMessageToPerson(remark_id,remark_msg);
-        // beatBack(10);
-        // INPUT_HOME();
-
-        TASK_EXEC = TASK_COMPELTED;
+        if(SendMessageToPerson(remark_id,remark_msg))
+            TASK_EXEC = TASK_EXEC_FAILD;
+        else
+            TASK_EXEC = TASK_COMPELTED;
     }
     else if(TASK_EXEC == TASK_QUIT)
     {
-        // beatBack(10);
-        // INPUT_HOME();
-     //   applacationstate = AppState::EXITING;
         TASK_EXEC = TASK_COMPELTED;
     }
     else if(TASK_EXEC == TASK_FOLLOW_MODE)
@@ -711,6 +711,11 @@ void Thread_Tikok::executeTask()
             {
                 SpecifyLivingRoomOnSite(remark_link);
                 break;
+            }
+            else
+            {
+                TASK_EXEC =TASK_EXEC_FAILD;
+                return;
             }
         }
 
@@ -733,7 +738,7 @@ void Thread_Tikok::executeTask()
             }
             else if(isLivingRoom() <0)
             {
-                TASK_EXEC = TASK_COMPELTED;
+                TASK_EXEC = TASK_EXEC_FAILD;
             }
         }
 
@@ -753,8 +758,6 @@ void Thread_Tikok::executeTask()
             else if(RandomFollowUser() == -3)
             {
                 ProhibitFollow_b =true;
-                // beatBack(10);
-                // INPUT_HOME();
                 TASK_EXEC = TASK_COMPELTED;
             }
         }
@@ -766,56 +769,56 @@ void Thread_Tikok::executeTask()
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE || TASK_EXEC == TASK_LVIVINGROOM_BULLET_SENT)
     {
-          int ret = isLivingRoom();
+        int ret = isLivingRoom();
+        if( ret>=3)
+        {
+            cout << "正在直播间："<<remark_link << endl;
+            randomCickScreen();
+
+        }
+        else if(ret <0)
+        {
+            TASK_EXEC =TASK_EXEC_FAILD;
+        }
+        else
+        {
+            ret = isLivingRoom();
             if( ret>=3)
             {
                 cout << "正在直播间："<<remark_link << endl;
                 randomCickScreen();
 
+
             }
             else if(ret <0)
             {
+                TASK_EXEC =TASK_EXEC_FAILD;
+            }
+
+            if(SpecifyLivingRoomOnSite(remark_link) ==-1)
+            {
                 TASK_EXEC =TASK_COMPELTED;
             }
-            else
-            {
-                ret = isLivingRoom();
-                if( ret>=3)
-                {
-                    cout << "正在直播间："<<remark_link << endl;
-                    randomCickScreen();
-
-
-                }
-                else if(ret <0)
-                {
-                    TASK_EXEC =TASK_COMPELTED;
-                }
-
-                if(SpecifyLivingRoomOnSite(remark_link) ==-1)
-                {
-                    TASK_EXEC =TASK_COMPELTED;
-                }
-            }
+        }
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_BULLET)
     {
-            cout << "检查直播间三要素 >>>......\n" << endl;
+        cout << "检查直播间三要素 >>>......\n" << endl;
         int ret = isLivingRoom();
-            if( ret >=3)
-            {
-                cout << "确认完毕 >>>......\n" << endl;
-                SendBraggerForLivingRoom(remark_msg,false);
-                TASK_EXEC = TASK_LVIVINGROOM_BULLET_SENT;
-            }
-            else if(ret <0)
-            {
-                TASK_EXEC =TASK_COMPELTED;
-            }
-            else
-            {
-                SpecifyLivingRoomOnSite(remark_link);
-            }
+        if( ret >=3)
+        {
+            cout << "确认完毕 >>>......\n" << endl;
+            SendBraggerForLivingRoom(remark_msg,false);
+            TASK_EXEC = TASK_LVIVINGROOM_BULLET_SENT;
+        }
+        else if(ret <0)
+        {
+            TASK_EXEC =TASK_EXEC_FAILD;
+        }
+        else
+        {
+            SpecifyLivingRoomOnSite(remark_link);
+        }
 
 
     }
@@ -840,11 +843,9 @@ void Thread_Tikok::executeTask()
         }
         if(SpecifyContentOperation(remark_link,opt,remark_msg) !=  0)
         {
-
-            TASK_EXEC = TASK_COMPELTED;
+            TASK_EXEC = TASK_EXEC_FAILD;
+            return ;
         }
-        // beatBack(10);
-        // INPUT_HOME();
         TASK_EXEC = TASK_COMPELTED;
     }
     else
@@ -1233,16 +1234,23 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
         match = FindTargetForDelay(TIKTOK_CONTENT_SHAREDLINK_CV,score,5);
         if(match.x == -1 ||match.y == -1)
         {
-            INPUT_HOME();
-            SHORT_DELAY;
-            turnon_application(APP_TIKTOK_ENUM);
-            SHORT_DELAY;
-            cout << "未能打开链接  重试.."<< endl;
-            if(CopyTextFormSys(content))
+            match = FindTargetForDelay(TIKTOK_CONTENT_LIVINGNOTSTART_CV,score,1);
+            if(match.x == -1 ||match.y == -1)
             {
-                continue;
+                SHORT_DELAY;
+                cout << "未能打开链接  重试.."<< endl;
+                if(CopyTextFormSys(content))
+                {
+                    continue;
+                }
+                turnon_application(APP_TIKTOK_ENUM);
             }
-            turnon_application(APP_TIKTOK_ENUM);
+            else
+            {
+                cout << "无法进入直播间  :直播尚未开始>>>......\n" << endl;
+
+                return -1;
+            }
 
         }
         else

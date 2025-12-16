@@ -26,6 +26,7 @@ public:
         TASK_FOLLOW_MODE_RUNNING,
         TASK_SCROLLING_MODE,
         TASK_COMPELTED,
+        TASK_EXEC_FAILD,
         TASK_FOLLOW_SOMEONE
     };
     typedef int CONTENT_OPT;
@@ -75,10 +76,7 @@ public:
 
 
 protected:
-    // 检查是否有任务（子类可重写）
     virtual bool hasTask();
-
-    // 执行任务（子类可重写）
     virtual void executeTask();
 
 private:

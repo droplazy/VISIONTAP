@@ -68,7 +68,7 @@ ad_point FindPicTargetWithMask(cv::Mat targetImage, cv::Mat templateImage, cv::M
     Score = maxVal;
 
     // 调试部分：标记匹配区域并保存图像 13 8 61 116 168
-#if 1
+#if 0
     // 在目标图像中用红色框标记匹配区域
     cv::Rect matchRect(maxLoc.x, maxLoc.y, templateImage.cols, templateImage.rows);
     cv::Mat debugImage = targetImage.clone();  // 创建目标图像的副本

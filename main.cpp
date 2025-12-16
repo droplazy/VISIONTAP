@@ -100,9 +100,9 @@ int main()
             if(p_applation!= nullptr)
             {
 
-                if(p_applation->applacationstate ==ThreadBase::AppState::EXITING)
+                if(p_applation->applacationstate ==ThreadBase::AppState::EXITING || p_applation->applacationstate ==ThreadBase::AppState::ERROR)
                 {
-                    cout <<"线程已经退出..." <<endl;
+                    cout <<"线程已经退出... " <<endl;
                     p_applation->safeStop();
                     p_applation =nullptr;
                     currentAct->compeleted = true;
@@ -138,7 +138,7 @@ int main()
         }
         else
         {
-            cout << "没有活动" <<endl;
+          //  cout << "没有活动" <<endl;
         }
 
         pollAndRemoveCompletedActions(actions_vector);//清除已经结束或者无效的动作
