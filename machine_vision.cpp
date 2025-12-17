@@ -111,6 +111,11 @@ void TURN_ON_TIKTOK(void)
 */
     snap_screen();//重新生成一张背景图片
     FindTargetClick(TIKTOK_PATH,false);
+
+    // cv::Rect cutRect(57, 131, 114, 130); // x=100, y=100, width=200, height=150
+    // ad_point result = FindTargetWithCutRect(TEXTCOPY_PATH, cutRect);
+    // // FindTargetWithCutRect(,)
+    // cout << "find : " << result.x <<", " <<result.y <<endl;
 }
 
 // 启动 WeChat
@@ -684,7 +689,25 @@ int CopyTextFormSys(string texture)
     return 0;
 }
 
+ad_point FindTargetForDelaywithRect(string targetPng,cv::Rect cutRect,int clycles)
+{
+    for (int var = 0; var < clycles; ++var)
+    {
+        ad_point match = FindTargetWithCutRect(targetPng,cutRect);
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+        }
+        else
+        {
 
+            return match;
+        }
+    }
+    //  cout << "警告:长时间未找到亩目标 已经退出...\n" << endl;
+
+    return {-1,-1};
+}
 
 ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
 {
@@ -837,4 +860,43 @@ ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
 #endif
 
     return match;
+}
+
+
+
+int debugisLivingRoom()
+{
+    bool ret = false;
+    int eleGet=0;
+    cv::Rect cutRect(745, 480, 278, 42);
+
+    ad_point match = FindTargetForDelaywithRect(TIKTOK_LIVING_ELE_1_UI_CV, cutRect,5);
+
+    if(match.x== -1 || match.y== -1)
+    {
+        cout << "未发现小心心按钮\n" <<endl;
+    }
+    else
+        eleGet ++;
+    match = FindTargetForDelaywithRect(TIKTOK_LIVING_ELE_2_UI_CV, cutRect,5);
+
+    if(match.x== -1 || match.y== -1)
+    {
+        cout << "未发现礼物按钮\n" <<endl;
+    }
+    else
+        eleGet ++;
+
+
+    match = FindTargetReturnPoint(TIKTOK_LIVING_TERMINATE_UI_CV);//todo
+
+    if(match.x>0&& match.y>0)
+    {
+        eleGet =-1;
+        cout << "直播已经终止\n"<<endl;
+    }
+    else
+        eleGet ++;
+
+    return eleGet;
 }

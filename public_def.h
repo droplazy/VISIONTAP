@@ -12,7 +12,7 @@ using namespace std;
 #include <tuple>
 #include <chrono>
 
-//#define ENABLE_DEBUG_IMAGE
+#define ENABLE_DEBUG_IMAGE
 
 
 
@@ -301,6 +301,7 @@ typedef struct {
 
 #define TIKTOK_LIVING_FOLLOW_OK_UI_CV    "/data/machine_vision/apppic/followsuccess.png"   //
 #define TIKTOK_LIVING_FOLLOW_MAXED_UI_CV    "/data/machine_vision/apppic/followmax.png"   //
+#define TIKTOK_LIVING_FOLLOW_2_UI_CV    "/data/machine_vision/apppic/follow_2.png"   //
 
 #define TIKTOK_CONTENT_SHARE_CV    "/data/machine_vision/apppic/contentshare.png"   //
 #define TIKTOK_CONTENT_SHAREMORE_CV    "/data/machine_vision/apppic/sharemore.png"   //
@@ -312,6 +313,7 @@ typedef struct {
 #define TIKTOK_CONTENT_SEARCHPFILLED_CV    "/data/machine_vision/apppic/searchfilled.png"   //.png
 #define TIKTOK_CONTENT_SHAREDLINK_CV    "/data/machine_vision/apppic/opensharedcontent.png"   //.png
 #define TIKTOK_CONTENT_FIRSTLAUNCH_CV    "/data/machine_vision/apppic/firstlaunch.png"   //.pngcannotopenliving.png
+#define TIKTOK_CONTENT_LIVINGNOTSTART_CV    "/data/machine_vision/apppic/cannotopenliving.png"   //.png
 #define TIKTOK_CONTENT_LIVINGNOTSTART_CV    "/data/machine_vision/apppic/cannotopenliving.png"   //.png
 
 

@@ -71,12 +71,7 @@ void printSubActions(const vector<Dev_Action>& actions_vector) {
 
 int main()
 {
-    cv::Rect cutRect(57, 131, 114, 130); // x=100, y=100, width=200, height=150
-    ad_point result = FindTargetWithCutRect(TEXTCOPY_PATH, cutRect);
-   // FindTargetWithCutRect(,)
-    cout << "find : " << result.x <<", " <<result.y <<endl;
 
-    return 0;
     ThreadBase *p_applation =nullptr;
     vector<Dev_Action> actions_vector;
     actions_vector.reserve(24);

@@ -52,5 +52,7 @@ int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) ;
 ad_point FindTargetForDelay(string targetPng,double &score,int clycles);
 ad_point FindTargetWithstartPoint(string targetPng, ad_point startPoint);
 ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect);
+ad_point FindTargetForDelaywithRect(string targetPng,cv::Rect cutRect,int clycles);
+int debugisLivingRoom();
 
 #endif // 结束 #ifndef

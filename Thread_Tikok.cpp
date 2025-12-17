@@ -209,7 +209,7 @@ void Thread_Tikok::FollowMode(string FollowText,string roomname,int circleTimes)
                 turnon_application(APP_TIKTOK_ENUM);
 
                 int i=0;
-                for (i = 0; i < 15; ++i)
+                for (i = 0; i < 1; ++i)
                 {
                     cout << "检查直播间三要素 >>>......\n" << endl;
                     int ret = isLivingRoom() ;
@@ -240,7 +240,7 @@ void Thread_Tikok::FollowMode(string FollowText,string roomname,int circleTimes)
         if(sec %10 == 0)
         {
 #if 1
-            for (int i = 0; i < 5; ++i) {
+            for (int i = 0; i < 1; ++i) {
                 cout << "检查直播间三要素 >>>......\n" << endl;
 
                 if( isLivingRoom() >=3)
@@ -698,7 +698,7 @@ void Thread_Tikok::executeTask()
     }
     else if(TASK_EXEC == TASK_FOLLOW_MODE)
     {
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
 
@@ -727,7 +727,7 @@ void Thread_Tikok::executeTask()
     else if(TASK_EXEC == TASK_FOLLOW_MODE_RUNNING)
     {
         int i =0;
-        for (i = 0; i < 3; ++i)
+        for (i = 0; i < 1; ++i)
         {
             cout << "检查直播间三要素 >>>......\n" << endl;
 
@@ -770,6 +770,29 @@ void Thread_Tikok::executeTask()
     else if(TASK_EXEC == TASK_FOLLOW_SOMEONE)
     {
         SearchPersonZone(remark_id);
+        double score= 0.0f;
+        LONG_DELAY;
+        //点击用户按钮
+        ad_point match= FindTargetForDelay(TIKTOK_SEARCH_USER_CV,score,5);
+        if(match.x ==-1 || match.y ==-1)
+        {
+            TASK_EXEC =TASK_EXEC_FAILD;
+                        return ;
+        }
+        INPUT_TAP(match);
+
+        cv::Rect cutRect(211, 124, 596, 83);
+        match = FindTargetForDelaywithRect(TIKTOK_LIVING_FOLLOW_2_UI_CV, cutRect,5);
+        if(match.x ==-1 || match.y ==-1)
+        {
+             TASK_EXEC =TASK_EXEC_FAILD;
+                        return ;
+        }
+        INPUT_TAP(match);
+
+        cout << "find : " << match.x <<", " <<match.y <<endl;
+        cout << "用户已经关注: " << remark_id<<endl;
+
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE || TASK_EXEC == TASK_LVIVINGROOM_BULLET_SENT)
     {
@@ -1725,15 +1748,18 @@ int Thread_Tikok::isLivingRoom()
 {
     bool ret = false;
     int eleGet=0;
-    ad_point match = FindTargetReturnPoint(TIKTOK_LIVING_ELE_1_UI_CV);//todo
+    cv::Rect cutRect(745, 480, 278, 42);
+
+    ad_point match = FindTargetForDelaywithRect(TIKTOK_LIVING_ELE_1_UI_CV, cutRect,5);
+
     if(match.x== -1 || match.y== -1)
     {
         cout << "未发现小心心按钮\n" <<endl;
     }
     else
         eleGet ++;
+    match = FindTargetForDelaywithRect(TIKTOK_LIVING_ELE_2_UI_CV, cutRect,5);
 
-    match = FindTargetReturnPoint(TIKTOK_LIVING_ELE_2_UI_CV);//todo
     if(match.x== -1 || match.y== -1)
     {
         cout << "未发现礼物按钮\n" <<endl;
@@ -1743,6 +1769,7 @@ int Thread_Tikok::isLivingRoom()
 
 
     match = FindTargetReturnPoint(TIKTOK_LIVING_TERMINATE_UI_CV);//todo
+
     if(match.x>0&& match.y>0)
     {
         eleGet =-1;
