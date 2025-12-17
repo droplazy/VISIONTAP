@@ -7,11 +7,6 @@
 #include "ThreadBase.h"
 #include "Thread_Tikok.h"
 
-
-#include "machine_vision.h"
-
-
-
 void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
 {
     //  currentAct->print();
@@ -90,13 +85,10 @@ int main()
     {
         if(mqttClient.isMessageComing(mqtt_message,mqtt_topic))
         {
-            //    std::cout << "Message received on topic [" << mqtt_topic << "]: " << mqtt_message << std::endl;
             ParseMqttMassage(mqtt_message,actions_vector);
         }
 
-
          TraverActionsVector(actions_vector,currentAct);
-
 
         if(currentAct != nullptr)
         {
@@ -111,7 +103,9 @@ int main()
                     cout <<"线程已经退出... " <<endl;
                     p_applation->safeStop();
                     p_applation =nullptr;
-                    currentAct->compeleted = true;
+                    currentAct->compeleted = true;//交给回收接口去处理
+                    currentAct=nullptr;
+                    continue;
                 }
 
                 if(currentAct->sub_action == "弹幕"&& currentAct->action == "抖音")
@@ -123,10 +117,7 @@ int main()
                         p_tikok->TASK_EXEC = Thread_Tikok::TASK_LVIVINGROOM_ONSITE;
                         cout << "已经更新状态为直播"<<endl;
                     }
-                 //   cout << currentAct->sub_action <<endl;
-                //    cout <<"state:" <<p_tikok->TASK_EXEC <<endl;
                 }
-               // currentAct->print();
             }
             else
             {
@@ -136,10 +127,6 @@ int main()
                     currentAct =nullptr;
                 }
             }
-            //  currentAct->print();
-            // cout << currentAct->sub_action <<endl;
-            // cout << currentAct->end_time <<endl;
-            // cout << currentAct->isRunning <<endl;
 
         }
         else
@@ -151,21 +138,13 @@ int main()
         //  cout << "*********************" <<endl;
         // printSubActions(actions_vector); //打印出所有任务队列
         //  cout << "+++++++++++++++++++++" <<endl;
-
-
-
-
+        // 心跳
         // 获取当前时间
         auto current_time = std::chrono::steady_clock::now();
 
-        // 判断是否已经过去了3秒
-        if (std::chrono::duration_cast<std::chrono::seconds>(current_time - last_time).count() >= 5) {
-            // 每3秒调用一次publishHeart()
-            // DeviceData devicedata ;
-            // devicedata.current_action.name = currentAct->action;
-            // devicedata.current_action.start_time = currentAct->start_time;
-            // devicedata.current_action.end_time = currentAct->end_time;
 
+        if (std::chrono::duration_cast<std::chrono::seconds>(current_time - last_time).count() >= 5)
+        {
             string msg =GetdeviceInfoAndresJson(currentAct);
             mqttClient.pubMessage(msg);
             last_time = current_time;  // 更新上次调用时间

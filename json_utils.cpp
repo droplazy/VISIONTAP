@@ -362,6 +362,10 @@ void parseDataArray(const string& json, vector<Dev_Action>& actions) {
         action.end_time = extractString(obj, "end_time");
         action.remark = extractString(obj, "remark");
         action.processId = processId;
+        action.isRunning=false;
+        action.isCommand = false;
+        action.Forcestop = false;
+        action.compeleted  = false;
         actions.push_back(action); // 将填充好的 action 对象加入到容器中
 
         objStart = objEnd + 1; // 继续查找下一个对象
@@ -452,6 +456,20 @@ Dev_Action* TraverActionsVector(vector<Dev_Action>& actions , Dev_Action *&curre
             else if (compareTime(action.start_time) >= 0 && currentAct==nullptr )  // 如果活动开始时间到且没有正在进行的活动，则启动
             {
                 std::cout << "准备启动活动:" << action.action << action.sub_action << std::endl;
+                std::cout << "调试:" << compareTime(action.start_time) << std::endl;
+                auto now = std::chrono::system_clock::now();
+
+                // 转换为time_t类型
+                std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+
+                // 转换为本地时间
+                std::tm* local_time = std::localtime(&now_time);
+
+                // 输出格式化时间
+                std::cout << "当前时间: "
+                          << std::put_time(local_time, "%Y-%m-%d %H:%M:%S")
+                          << std::endl;
+                action.print();
                 currentAct =&action;
                 return &action;  // 返回指向活动的指针
             }

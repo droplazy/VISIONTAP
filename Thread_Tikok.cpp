@@ -1885,7 +1885,7 @@ void Thread_Tikok::selectTaskPreExec()
         TASK_EXEC = TASK_UNKNOW;
     }
 
-    cout << "准备启动活动: "<<action.sub_action <<"【" << action.start_time << " - " << action.end_time << "】"<<endl;
+    cout << "启动活动: "<<action.sub_action <<"【" << action.start_time << " - " << action.end_time << "】"<<endl;
 }
 
 #if 0
