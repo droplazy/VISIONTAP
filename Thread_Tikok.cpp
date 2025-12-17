@@ -801,7 +801,6 @@ void Thread_Tikok::executeTask()
         {
             cout << "正在直播间："<<remark_link << endl;
             randomCickScreen();
-
         }
         else if(ret <0)
         {
