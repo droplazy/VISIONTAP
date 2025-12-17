@@ -230,12 +230,9 @@ ad_point FindTargetForDelay(string targetPng,double &score,int clycles)
         usleep(200*1000);
         if(match.x ==-1 || match.y ==-1)
         {
-            //cout << "...\n" << endl;
         }
         else
         {
-            // cout << "目标已找到 得分: " <<score << "\n" << endl;
-            // cout << "坐标"<<match.x << ", " <<match.y<<" ...\n" <<endl;
 
             return match;
         }
@@ -245,6 +242,170 @@ ad_point FindTargetForDelay(string targetPng,double &score,int clycles)
     return {-1,-1};
 }
 
+ad_point FindTargetForDelayWithStartP(string targetPng, ad_point startPoint,int clycles)
+{
+    for (int var = 0; var < clycles; ++var)
+    {
+        ad_point match = FindTargetWithstartPoint(targetPng,startPoint);
+        usleep(200*1000);
+        if(match.x ==-1 || match.y ==-1)
+        {
+        }
+        else
+        {
+
+            return match;
+        }
+    }
+    //  cout << "警告:长时间未找到亩目标 已经退出...\n" << endl;
+
+    return {-1,-1};
+}
+
+ad_point FindTargetWithstartPoint(string targetPng, ad_point startPoint)
+{
+    snap_screen(); // 重新生成一张背景图片
+    checkFileExistsWithTimeout("/data/machine_vision/background.png", 3);
+    ad_point match = {-1, -1};
+
+    cv::Mat targetImage;
+    cv::Mat templateImage;
+    int i;
+    for (i = 0; i < 5; ++i) {
+        // 读取目标图像
+        targetImage = cv::imread(targetPng);
+        if (targetImage.empty()) {
+            std::cerr << "无法读取目标图像: " << i << targetPng << std::endl;
+            continue;
+        }
+
+        // 读取模板图像
+        templateImage = cv::imread("/data/machine_vision/background.png");
+        if (templateImage.empty()) {
+            std::cerr << "无法读取模板图像" << i << std::endl;
+            continue; // 如果读取模板图像失败，返回-1
+        }
+        break;
+    }
+    if (i > 4) {
+        cerr << " 无法生成cv ：mat";
+        return {-1, -1};
+    }
+
+    // 检查起始坐标是否合法
+    if (startPoint.x < 0 || startPoint.y < 0 ||
+        startPoint.x >= templateImage.cols || startPoint.y >= templateImage.rows) {
+        std::cerr << "起始坐标超出图像范围" << std::endl;
+        return {-1, -1};
+    }
+
+    // 计算截取区域
+    int cropWidth = targetImage.cols;
+    int cropHeight = targetImage.rows;
+
+    // 确保截取区域不超出原图边界
+    int cropX = startPoint.x;
+    int cropY = startPoint.y;
+    int actualWidth = std::min(cropWidth, templateImage.cols - cropX);
+    int actualHeight = std::min(cropHeight, templateImage.rows - cropY);
+
+    if (actualWidth <= 0 || actualHeight <= 0) {
+        std::cerr << "截取区域超出图像边界" << std::endl;
+        return {-1, -1};
+    }
+
+    // 生成调试图片：在templateImage上框出截取区域
+    cv::Mat debugImage = templateImage.clone();
+    cv::Rect roiRect(cropX, cropY, actualWidth, actualHeight);
+
+    // 绘制红色矩形框（截取区域）
+    cv::rectangle(debugImage, roiRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+    // 在起点位置画一个绿色点
+    cv::circle(debugImage, cv::Point(cropX, cropY), 5, cv::Scalar(0, 255, 0), -1); // 绿色点
+
+    // 添加文字说明
+    std::string roiText = "ROI: (" + std::to_string(cropX) + "," + std::to_string(cropY) + ") size: " +
+                          std::to_string(actualWidth) + "x" + std::to_string(actualHeight);
+    cv::putText(debugImage, roiText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+
+    // 保存调试图片
+    cv::imwrite("debug_roi_selection.jpg", debugImage);
+    std::cout << "已保存截取区域调试图片: debug_roi_selection.jpg" << std::endl;
+
+    // 截取指定区域作为图片C
+    cv::Mat imageC = templateImage(roiRect).clone();
+
+    // 保存截取的图片C
+    cv::imwrite("debug_cropped_imageC.jpg", imageC);
+    std::cout << "已保存截取的图片C: debug_cropped_imageC.jpg" << std::endl;
+
+    double score;
+    // 找到目标图片（使用截取的区域进行比对）
+    match = FindPicTarget(targetImage, imageC, score);
+    cout << "score: " << score << "\n";
+
+    // 如果匹配的分数小于0.8，返回-1
+    if (score < 0.8) {
+        // 生成匹配失败的调试图片
+        cv::Mat failDebugImage = templateImage.clone();
+
+        // 绘制红色矩形框（截取区域）
+        cv::rectangle(failDebugImage, roiRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+        // 在起点位置画一个绿色点
+        cv::circle(failDebugImage, cv::Point(cropX, cropY), 5, cv::Scalar(0, 255, 0), -1); // 绿色点
+
+        // 添加匹配失败的文字说明
+        std::string failText = "Match FAILED! Score: " + std::to_string(score);
+        cv::putText(failDebugImage, failText, cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+        cv::putText(failDebugImage, roiText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+
+        // 保存匹配失败的调试图片
+        cv::imwrite("debug_match_failed.jpg", failDebugImage);
+        std::cout << "已保存匹配失败调试图片: debug_match_failed.jpg" << std::endl;
+
+        return {-1, -1};
+    }
+
+    // 计算匹配区域的矩形（相对于原始模板图像）
+    cv::Rect matchRect(match.x + startPoint.x, match.y + startPoint.y,
+                       targetImage.cols, targetImage.rows);
+
+    // 生成匹配成功的调试图片
+    cv::Mat successDebugImage = templateImage.clone();
+
+    // 绘制红色矩形框（截取区域）
+    cv::rectangle(successDebugImage, roiRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+    // 绘制绿色矩形框（匹配区域）
+    cv::rectangle(successDebugImage, matchRect, cv::Scalar(0, 255, 0), 2); // 绿色框
+
+    // 在起点位置画一个绿色点
+    cv::circle(successDebugImage, cv::Point(cropX, cropY), 5, cv::Scalar(0, 255, 0), -1); // 绿色点
+
+    // 计算匹配中心点
+    cv::Point matchCenter(matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2);
+
+    // 在匹配中心画一个蓝色点
+    cv::circle(successDebugImage, matchCenter, 5, cv::Scalar(255, 0, 0), -1); // 蓝色点
+
+    // 添加文字说明
+    std::string successText = "Match SUCCESS! Score: " + std::to_string(score);
+    std::string matchText = "Match Center: (" + std::to_string(matchCenter.x) + "," + std::to_string(matchCenter.y) + ")";
+    cv::putText(successDebugImage, successText, cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+    cv::putText(successDebugImage, matchText, cv::Point(10, 90), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 0, 0), 2);
+    cv::putText(successDebugImage, roiText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+
+    // 保存匹配成功的调试图片
+    cv::imwrite("debug_match_success.jpg", successDebugImage);
+    std::cout << "已保存匹配成功调试图片: debug_match_success.jpg" << std::endl;
+
+    // 返回相对于原始模板图像的坐标
+    match = {matchCenter.x, matchCenter.y};
+
+    return match;
+}
 
 ad_point FindTargetReturnPoint(string targetPng)
 {
@@ -319,7 +480,7 @@ ad_point FindTargetReturnPoint(string targetPng)
 
     // 在目标图像中用红色框标记匹配区域
     cv::Rect matchRect(match.x, match.y, targetImage.cols, targetImage.rows);
-#if 0
+#if 1
     cv::Mat debugImage = templateImage.clone();  // 创建目标图像的副本
 
     // 用红色框住匹配区域
@@ -521,4 +682,159 @@ int CopyTextFormSys(string texture)
         INPUT_TAP(match);
     }
     return 0;
+}
+
+
+
+ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
+{
+    snap_screen(); // 重新生成一张背景图片
+    checkFileExistsWithTimeout("/data/machine_vision/background.png", 3);
+    ad_point match = {-1, -1};
+
+    cv::Mat targetImage;
+    cv::Mat templateImage;
+    int i;
+    for (i = 0; i < 5; ++i) {
+        // 读取目标图像
+        targetImage = cv::imread(targetPng);
+        if (targetImage.empty()) {
+            std::cerr << "无法读取目标图像: " << i << targetPng << std::endl;
+            continue;
+        }
+
+        // 读取模板图像
+        templateImage = cv::imread("/data/machine_vision/background.png");
+        if (templateImage.empty()) {
+            std::cerr << "无法读取模板图像" << i << std::endl;
+            continue; // 如果读取模板图像失败，返回-1
+        }
+        break;
+    }
+    if (i > 4) {
+        cerr << " 无法生成cv ：mat";
+        return {-1, -1};
+    }
+
+    // 检查cutRect是否合法
+    if (cutRect.x < 0 || cutRect.y < 0 ||
+        cutRect.width <= 0 || cutRect.height <= 0) {
+        std::cerr << "cutRect参数无效" << std::endl;
+        return {-1, -1};
+    }
+
+    // 确保截取区域不超出原图边界
+    int cropX = cutRect.x;
+    int cropY = cutRect.y;
+    int actualWidth = std::min(cutRect.width, templateImage.cols - cropX);
+    int actualHeight = std::min(cutRect.height, templateImage.rows - cropY);
+
+    if (actualWidth <= 0 || actualHeight <= 0) {
+        std::cerr << "截取区域超出图像边界" << std::endl;
+        return {-1, -1};
+    }
+
+    // 使用实际的宽高创建ROI矩形
+    cv::Rect roiRect(cropX, cropY, actualWidth, actualHeight);
+
+    // 截取指定区域作为图片C
+    cv::Mat imageC = templateImage(roiRect).clone();
+
+#ifdef ENABLE_DEBUG_IMAGE
+    // 生成调试图片：在templateImage上框出截取区域
+    cv::Mat debugImage = templateImage.clone();
+
+    // 绘制红色矩形框（截取区域）
+    cv::rectangle(debugImage, roiRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+    // 在起点位置画一个绿色点
+    cv::circle(debugImage, cv::Point(cropX, cropY), 5, cv::Scalar(0, 255, 0), -1); // 绿色点
+
+    // 添加文字说明
+    std::string roiText = "ROI: (" + std::to_string(cropX) + "," + std::to_string(cropY) + ") size: " +
+                          std::to_string(actualWidth) + "x" + std::to_string(actualHeight);
+    cv::putText(debugImage, roiText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+
+    // 保存调试图片
+    cv::imwrite("debug_roi_selection.jpg", debugImage);
+    std::cout << "已保存截取区域调试图片: debug_roi_selection.jpg" << std::endl;
+
+    // 保存截取的图片C
+    cv::imwrite("debug_cropped_imageC.jpg", imageC);
+    std::cout << "已保存截取的图片C: debug_cropped_imageC.jpg" << std::endl;
+#endif
+
+    double score;
+    // 找到目标图片（使用截取的区域进行比对）
+    match = FindPicTarget(targetImage, imageC, score);
+    cout << "score: " << score << "\n";
+
+    // 如果匹配的分数小于0.8，返回-1
+    if (score < 0.8) {
+#ifdef ENABLE_DEBUG_IMAGE
+        // 生成匹配失败的调试图片
+        cv::Mat failDebugImage = templateImage.clone();
+
+        // 绘制红色矩形框（截取区域）
+        cv::rectangle(failDebugImage, roiRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+        // 在起点位置画一个绿色点
+        cv::circle(failDebugImage, cv::Point(cropX, cropY), 5, cv::Scalar(0, 255, 0), -1); // 绿色点
+
+        // 添加匹配失败的文字说明
+        std::string failText = "Match FAILED! Score: " + std::to_string(score);
+        cv::putText(failDebugImage, failText, cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2);
+        cv::putText(failDebugImage, roiText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+
+        // 保存匹配失败的调试图片
+        cv::imwrite("debug_match_failed.jpg", failDebugImage);
+        std::cout << "已保存匹配失败调试图片: debug_match_failed.jpg" << std::endl;
+#endif
+        return {-1, -1};
+    }
+
+    // 计算匹配区域的矩形（相对于原始模板图像）
+    cv::Rect matchRect(match.x + cutRect.x, match.y + cutRect.y,
+                       targetImage.cols, targetImage.rows);
+
+    // 计算匹配中心点
+    cv::Point matchCenter(matchRect.x + matchRect.width / 2, matchRect.y + matchRect.height / 2);
+
+    // 返回相对于原始模板图像的坐标
+    match = {matchCenter.x, matchCenter.y};
+
+#ifdef ENABLE_DEBUG_IMAGE
+    // 生成匹配成功的调试图片
+    cv::Mat successDebugImage = templateImage.clone();
+
+    // 绘制红色矩形框（截取区域）
+    cv::rectangle(successDebugImage, roiRect, cv::Scalar(0, 0, 255), 2); // 红色框
+
+    // 绘制绿色矩形框（匹配区域）
+    cv::rectangle(successDebugImage, matchRect, cv::Scalar(0, 255, 0), 2); // 绿色框
+
+    // 在起点位置画一个绿色点
+    cv::circle(successDebugImage, cv::Point(cropX, cropY), 5, cv::Scalar(0, 255, 0), -1); // 绿色点
+
+    // 在匹配中心画一个蓝色点
+    cv::circle(successDebugImage, matchCenter, 5, cv::Scalar(255, 0, 0), -1); // 蓝色点
+
+    // 添加文字说明
+    std::string successText = "Match SUCCESS! Score: " + std::to_string(score);
+    std::string matchText = "Match Center: (" + std::to_string(matchCenter.x) + "," + std::to_string(matchCenter.y) + ")";
+    std::string matchRectText = "Match Rect: (" + std::to_string(matchRect.x) + "," + std::to_string(matchRect.y) +
+                                ") " + std::to_string(matchRect.width) + "x" + std::to_string(matchRect.height);
+
+    // 添加多行文字说明
+    cv::putText(successDebugImage, successText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 2);
+    cv::putText(successDebugImage, roiText, cv::Point(10, 55), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 0), 2);
+    cv::putText(successDebugImage, matchRectText, cv::Point(10, 80), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 0), 2);
+    cv::putText(successDebugImage, matchText, cv::Point(10, 105), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 0, 0), 2);
+
+    // 保存匹配成功的调试图片
+    cv::imwrite("debug_match_success.jpg", successDebugImage);
+    std::cout << "已保存匹配成功调试图片: debug_match_success.jpg" << std::endl;
+#endif
+
+    return match;
 }

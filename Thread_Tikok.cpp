@@ -767,6 +767,10 @@ void Thread_Tikok::executeTask()
     {
         ScrollingShortVideos(1);
     }
+    else if(TASK_EXEC == TASK_FOLLOW_SOMEONE)
+    {
+        SearchPersonZone(remark_id);
+    }
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE || TASK_EXEC == TASK_LVIVINGROOM_BULLET_SENT)
     {
         int ret = isLivingRoom();
@@ -1231,9 +1235,18 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
     int var =0;
     for ( var = 0; var < 3; ++var)
     {
-        match = FindTargetForDelay(TIKTOK_CONTENT_SHAREDLINK_CV,score,5);
+        match = FindTargetForDelay(TIKTOK_CONTENT_SHAREDLINK_CV,score,3);
         if(match.x == -1 ||match.y == -1)
         {
+#if 0
+            SHORT_DELAY;
+            cout << "未能打开链接  重试.."<< endl;
+            if(CopyTextFormSys(content))
+            {
+                continue;
+            }
+            turnon_application(APP_TIKTOK_ENUM);
+#else
             match = FindTargetForDelay(TIKTOK_CONTENT_LIVINGNOTSTART_CV,score,1);
             if(match.x == -1 ||match.y == -1)
             {
@@ -1251,6 +1264,7 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
 
                 return -1;
             }
+#endif
 
         }
         else
@@ -1265,14 +1279,17 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
     if(var >2)
     {
         cout << "尝试手动打开内容.."<< endl;
-        EntranceLivingRoom(content);
+        if(EntranceLivingRoom(content) <0)
+        {
+            return -1;
+        }
         // SearchPersonZone(content);
         // SHORT_DELAY;
     }
 
 
     int i=0;
-    for (i = 0; i < 15; ++i)
+    for (i = 0; i < 3; ++i)
     {
         cout << "检查直播间三要素 >>>......\n" << endl;
 
@@ -1282,7 +1299,7 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
             return 0;
         }
     }
-    if(i>14)
+    if(i>2)
     {
         cout << "无法进入直播间 >>>......\n" << endl;
 
@@ -1748,6 +1765,7 @@ bool Thread_Tikok::LaunchToHomepage()
         int var=0;
         for ( var = 0; var < 10; ++var)
         {
+            SHORT_DELAY;
             isEnterHomePage =ShowMyHomepage();
             if(isEnterHomePage)
             {
@@ -1761,6 +1779,7 @@ bool Thread_Tikok::LaunchToHomepage()
                 return false;
             }
             beatBack(6);
+            turnon_application(APP_TIKTOK_ENUM);
 
         }
         if(var >=10)

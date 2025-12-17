@@ -50,4 +50,7 @@ int FindTargetClick(string targetPng, bool clickdelay); //clickdelay=1 重点击
 ad_point FindTargetReturnPoint(string targetPng);//返回目标位置
 int checkFileExistsWithTimeout(const char* filePath, int timeoutSeconds) ;
 ad_point FindTargetForDelay(string targetPng,double &score,int clycles);
+ad_point FindTargetWithstartPoint(string targetPng, ad_point startPoint);
+ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect);
+
 #endif // 结束 #ifndef

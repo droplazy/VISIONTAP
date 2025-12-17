@@ -12,6 +12,10 @@ using namespace std;
 #include <tuple>
 #include <chrono>
 
+//#define ENABLE_DEBUG_IMAGE
+
+
+
 // 定义一个结构体来存储网卡信息
 struct NetworkInfo {
     string ip;
