@@ -12,7 +12,7 @@ using namespace std;
 #include <tuple>
 #include <chrono>
 
-#define ENABLE_DEBUG_IMAGE
+#define ENABLE_DEBUG_IMAGE 0
 
 
 

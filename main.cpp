@@ -48,6 +48,7 @@ void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
         else
         {
             p_thread->safeStop();
+            p_thread = nullptr;
         }
         // currentAct.isRunning =false;
     }
@@ -105,10 +106,9 @@ int main()
                     p_applation =nullptr;
                     currentAct->compeleted = true;//交给回收接口去处理
                     currentAct=nullptr;
-                    continue;
+                    //continue;
                 }
-
-                if(currentAct->sub_action == "弹幕"&& currentAct->action == "抖音")
+                else if(currentAct->sub_action == "弹幕"&& currentAct->action == "抖音")
                 {
                     Thread_Tikok* p_tikok = static_cast<Thread_Tikok*>(p_applation);//TODO 感觉强转失败了
                     if(p_tikok->TASK_EXEC == Thread_Tikok::TASK_LVIVINGROOM_BULLET_SENT)

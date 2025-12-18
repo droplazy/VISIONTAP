@@ -763,7 +763,7 @@ ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
     // 截取指定区域作为图片C
     cv::Mat imageC = templateImage(roiRect).clone();
 
-#ifdef ENABLE_DEBUG_IMAGE
+#if ENABLE_DEBUG_IMAGE
     // 生成调试图片：在templateImage上框出截取区域
     cv::Mat debugImage = templateImage.clone();
 
@@ -794,7 +794,7 @@ ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
 
     // 如果匹配的分数小于0.8，返回-1
     if (score < 0.8) {
-#ifdef ENABLE_DEBUG_IMAGE
+#if ENABLE_DEBUG_IMAGE
         // 生成匹配失败的调试图片
         cv::Mat failDebugImage = templateImage.clone();
 
@@ -826,7 +826,7 @@ ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
     // 返回相对于原始模板图像的坐标
     match = {matchCenter.x, matchCenter.y};
 
-#ifdef ENABLE_DEBUG_IMAGE
+#if ENABLE_DEBUG_IMAGE
     // 生成匹配成功的调试图片
     cv::Mat successDebugImage = templateImage.clone();
 

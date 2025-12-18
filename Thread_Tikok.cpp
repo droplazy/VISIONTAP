@@ -1260,7 +1260,7 @@ int Thread_Tikok::enterSpecifyLivingrom(string content)
         match = FindTargetForDelay(TIKTOK_CONTENT_SHAREDLINK_CV,score,3);
         if(match.x == -1 ||match.y == -1)
         {
-#if 0
+#if 1
             SHORT_DELAY;
             cout << "未能打开链接  重试.."<< endl;
             if(CopyTextFormSys(content))
@@ -1464,22 +1464,18 @@ int Thread_Tikok::EntranceLivingRoom(string name)
         break;
     }
 
-    for (int i = 0; i < 15; ++i)
-    {
+
         cout << "检查直播间三要素 >>>......\n" << endl;
 
         if( isLivingRoom()>=3)
         {
             cout << "确认完毕 已经进入>>>......\n" << endl;
-            break;
         }
-        else if(i >=14)
+        else
         {
             cout <<"进入直播间失败\n" <<endl;
             return -1;
         }
-
-    }
 
     return 0;
 }
