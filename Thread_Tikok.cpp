@@ -647,7 +647,8 @@ void Thread_Tikok::onAppExit()
     }
     ad_point start = match;
     start.y+=400;
-    INPUT_SWIPE(start,match,220);
+    INPUT_SWIPE(start,match,100);
+   // cout << start.x <<start.y <<match.x <<match.y << endl;
     cout << "APP已经完全退出" <<endl;
     INPUT_HOME();
     SHORT_DELAY;

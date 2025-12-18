@@ -1,4 +1,15 @@
 #include "json_utils.h"
+#include <sstream>
+
+#include <iomanip>
+#include <fstream>
+#include <regex>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <cstdio>   // for popen
+#include <cstdlib>  // for exit
+
 
 
 

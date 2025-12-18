@@ -20,6 +20,13 @@ set(OPENSSL_LIBRARIES ${OPENSSL_ROOT_DIR}/lib)
 include_directories(${OPENSSL_INCLUDE_DIR})
 link_directories(${OPENSSL_LIBRARIES})
 
+# curl 配置
+set(CURL_ROOT_DIR /home/zhangjh/thirdlib_android/curl/curl-curl-7_71_1/build/_install/)
+set(CURL_INCLUDE_DIR ${CURL_ROOT_DIR}/include)
+set(CURL_LIBRARIES ${CURL_ROOT_DIR}/lib)
+include_directories(${CURL_INCLUDE_DIR})
+link_directories(${CURL_LIBRARIES})
+
 # Mosquitto 配置
 set(MOSQUITTO_ROOT_DIR /home/zhangjh/thirdlib_android/mqtt/mosquitto/build)
 set(MOSQUITTO_INCLUDE_DIR ${MOSQUITTO_ROOT_DIR}/include)
@@ -37,7 +44,7 @@ link_libraries(
     opencv_video
     opencv_features2d
     opencv_videoio
-
+    curl
     # OpenSSL 库
     ssl
     crypto
@@ -68,4 +75,6 @@ add_executable(cv_exe
     json_utils.cpp
     ThreadBase.h
     ThreadBase.cpp
+    http_utils.h
+    http_utils.cpp
 )
