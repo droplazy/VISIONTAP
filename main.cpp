@@ -7,70 +7,25 @@
 #include "ThreadBase.h"
 #include "Thread_Tikok.h"
 #include "http_utils.h"
-//#include "curl/curl.h"
 #include <fstream>
 
 
-void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
-{
-    //  currentAct->print();
-    if(currentAct->isRunning==false)
-    {
-        std::cout << "开始活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
-        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
-
-        currentAct->print();
-        currentAct->isRunning =true;
-
-        if(currentAct->action == "抖音" && p_thread == nullptr)
-        {
-            p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
-            p_thread->start();
-        }
-        else if(currentAct->action == "抖音" && p_thread != nullptr && \
-                   (currentAct->sub_action=="弹幕" || currentAct->sub_action=="退出" ))
-        {
-            p_thread->TaskUpdate(*currentAct);
-        }
-
-    }
-
-    if (((compareTime(currentAct->end_time) >= 0 && currentAct->isRunning) && !currentAct->compeleted) || \
-        (currentAct->Forcestop && !currentAct->compeleted))
-    {
-
-        std::cout << "完成活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
-        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
-
-        currentAct->compeleted=true;
-        currentAct =nullptr;
-
-        if(p_thread== nullptr)
-        {
-            cout <<"警告 ：没有发现运行的app管理线程"<<endl;
-        }
-        else
-        {
-            p_thread->safeStop();
-            p_thread = nullptr;
-        }
-        // currentAct.isRunning =false;
-    }
-    //   cout << "接口结束"<<endl;
-
-}
-
-void printSubActions(const vector<Dev_Action>& actions_vector) {
-    for (const auto& action : actions_vector) {
-        cout << action.sub_action << endl;  // 打印每个 Dev_Action 的 sub_action
-        cout << action.start_time << endl;  // 打印每个 Dev_Action 的 sub_action
-        cout << action.end_time << endl;  // 打印每个 Dev_Action 的 sub_action
-
-    }
-}
-
+int Downloadfile(std::string download_url,std::string save_path);
+void printSubActions(const vector<Dev_Action>& actions_vector);
+void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread);
+int Uploadfile(const std::string& upload_url, const std::string& file_path);
+int test_download_from_server();
+// Uploadfile("http://192.168.10.103:8080/dev/upload?serial_number=YDAT250701000007&verifycode=123654&filename=asddsa.png",\
+//            "/data/machine_vision/background.png");
+//return 0;
+//Downloadfile("http://192.168.10.103:8080/download?filename=123.txt","/data/machine_vision/123.txt");
+// Uploadfile("http://192.168.10.103:8080/dev/upload?serial_number=YDAT250701000007&verifycode=123654&filename=asddsa.png",\
+//            "/data/machine_vision/background.png");
+// Downloadfile("http://192.168.10.103:8080/download?filename=vision.tar.gz","/data/machine_vision/123.txt");
+// return 0;
+//test_download_from_server();
 int main() {
-    // 运行下载测试
+
     ThreadBase *p_applation = nullptr;
     vector<Dev_Action> actions_vector;
     actions_vector.reserve(24);
@@ -100,6 +55,8 @@ int main() {
                 if (p_applation->applacationstate == ThreadBase::AppState::EXITING ||
                     p_applation->applacationstate == ThreadBase::AppState::ERROR) {
                     cout << "线程已经退出... " << endl;
+                    //截图上传TODO
+
                     p_applation->safeStop();
                     p_applation = nullptr;
                     currentAct->compeleted = true; // 交给回收接口去处理
@@ -119,6 +76,8 @@ int main() {
             } else {
                 cout << "p_applation 指针为空" << endl;
                 if (currentAct->compeleted) {
+                    //截图上传TODO
+
                     currentAct = nullptr;
                 }
             }
@@ -150,6 +109,167 @@ int main() {
     return 0;
 }
 
+
+
+void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread)
+{
+
+    if(currentAct->isRunning==false)
+    {
+        std::cout << "开始活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
+
+        currentAct->print();
+        currentAct->isRunning =true;
+
+        if(currentAct->action == "抖音" && p_thread == nullptr)
+        {
+            p_thread = new Thread_Tikok("tiktok_thread",*currentAct);
+            p_thread->start();
+        }
+        else if(currentAct->action == "抖音" && p_thread != nullptr && \
+                 (currentAct->sub_action=="弹幕" || currentAct->sub_action=="退出" ))
+        {
+            p_thread->TaskUpdate(*currentAct);
+        }
+
+    }
+
+    if (((compareTime(currentAct->end_time) >= 0 && currentAct->isRunning) && !currentAct->compeleted) || \
+        (currentAct->Forcestop && !currentAct->compeleted))
+    {
+
+        std::cout << "完成活动:"<<currentAct->action << currentAct->sub_action<< std::endl;
+        std::cout << "开始时间:"<<currentAct->start_time << "停止时间:"<<currentAct->end_time << std::endl;
+
+        currentAct->compeleted=true;
+        currentAct =nullptr;
+
+        if(p_thread== nullptr)
+        {
+            cout <<"警告 ：没有发现运行的app管理线程"<<endl;
+        }
+        else
+        {
+            //截图上传TODO
+            p_thread->safeStop();
+            p_thread = nullptr;
+        }
+        // currentAct.isRunning =false;
+    }
+    //   cout << "接口结束"<<endl;
+
+}
+
+void printSubActions(const vector<Dev_Action>& actions_vector) {
+    for (const auto& action : actions_vector) {
+        cout << action.sub_action << endl;  // 打印每个 Dev_Action 的 sub_action
+        cout << action.start_time << endl;  // 打印每个 Dev_Action 的 sub_action
+        cout << action.end_time << endl;  // 打印每个 Dev_Action 的 sub_action
+
+    }
+}
+
+int Downloadfile(std::string download_url, std::string save_path) {
+    if (!HttpClient::init()) {
+        std::cerr << "Failed to initialize cURL!" << std::endl;
+        return -1;
+    }
+
+    std::cout << "=== Downloading File ===" << std::endl;
+    std::cout << "URL: " << download_url << std::endl;
+    std::cout << "Save to: " << save_path << std::endl;
+
+    // 创建HTTP客户端
+    HttpClient client;
+
+    // 配置
+    HttpClient::Config config;
+    config.timeout = 30;
+    config.verbose = true;  // 显示详细日志，便于调试
+    config.user_agent = "HttpDownloader/1.0";
+
+    // 使用download方法
+    if (client.download(download_url, save_path, config)) {
+        std::cout << "✓ File downloaded successfully!" << std::endl;
+
+        // 检查文件大小
+        std::ifstream file(save_path, std::ios::binary | std::ios::ate);
+        if (file.is_open()) {
+            std::cout << "  File size: " << file.tellg() << " bytes" << std::endl;
+            file.close();
+        }
+
+        HttpClient::cleanup();
+        return 0; // 成功
+    } else {
+        std::cout << "✗ Download failed!" << std::endl;
+
+        HttpClient::cleanup();
+        return -1; // 失败
+    }
+}
+int Uploadfile(const std::string& upload_url, const std::string& file_path)
+{
+    std::cout << "=== Uploading File ===" << std::endl;
+    std::cout << "URL: " << upload_url << std::endl;
+    std::cout << "File: " << file_path << std::endl;
+
+    // 检查文件是否存在
+    std::ifstream test_file(file_path.c_str(), std::ios::binary);
+    if (!test_file.is_open()) {
+        std::cout << "✗ Error: File does not exist or cannot be opened: " << file_path << std::endl;
+        return -1;
+    }
+    test_file.close();
+
+    // 初始化HTTP客户端
+    if (!HttpClient::init()) {
+        std::cout << "✗ Error: Failed to initialize cURL!" << std::endl;
+        return -1;
+    }
+
+    HttpClient client;
+
+    // 配置
+    HttpClient::Config config;
+    config.timeout = 60;  // 上传可能需要更长时间
+    config.verbose = true;  // 显示详细日志，便于调试
+    config.user_agent = "HttpUploader/1.0";
+    config.verify_ssl = false;  // 如果是HTTP而非HTTPS，可以禁用SSL验证
+
+    // 从文件路径中提取文件名
+    std::string filename;
+    size_t last_slash = file_path.find_last_of("/\\");
+    if (last_slash != std::string::npos) {
+        filename = file_path.substr(last_slash + 1);
+    } else {
+        filename = file_path;
+    }
+
+    std::cout << "Filename: " << filename << std::endl;
+
+    // 使用upload方法（发送multipart/form-data）
+    auto response = client.upload(upload_url, file_path, "file", config);
+
+    if (response.ok()) {
+        std::cout << "✓ File uploaded successfully!" << std::endl;
+        std::cout << "  Status: " << response.status_code << std::endl;
+        std::cout << "  Response: " << response.body << std::endl;
+    } else {
+        std::cout << "✗ Upload failed!" << std::endl;
+        std::cout << "  Error: " << response.error << std::endl;
+        std::cout << "  Status: " << response.status_code << std::endl;
+        return -1;
+    }
+
+    // 清理
+    HttpClient::cleanup();
+
+    std::cout << "\n=== Upload Completed ===" << std::endl;
+    return 0;
+
+}
 #if 0
 
         else if(currentAct->action == "抖音" && p_thread != nullptr &&currentAct->sub_action=="弹幕")
@@ -182,6 +302,7 @@ int main() {
 
 
 #endif
+
 #if 0
 
     class APP_TIKTOK app_tiktok;
@@ -295,6 +416,9 @@ int http_debug() {
 
     return 0;
 }
+
+
+#endif
 int test_download_from_server() {
     if (!HttpClient::init()) {
         std::cerr << "Failed to initialize cURL!" << std::endl;
@@ -333,7 +457,7 @@ int test_download_from_server() {
             }
         } else {
             std::cout << "✗ Download failed!" << std::endl;
-        //    std::cout << "  Error: " << client.get_last_error() << std::endl;
+            //    std::cout << "  Error: " << client.get_last_error() << std::endl;
         }
 
         // 方法2: 使用GET请求并保存响应
@@ -447,4 +571,3 @@ int test_download_from_server() {
 
     return 0;
 }
-#endif

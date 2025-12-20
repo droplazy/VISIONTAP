@@ -650,7 +650,6 @@ void Thread_Tikok::onAppExit()
     INPUT_SWIPE(start,match,100);
    // cout << start.x <<start.y <<match.x <<match.y << endl;
     cout << "APP已经完全退出" <<endl;
-    INPUT_HOME();
     SHORT_DELAY;
     INPUT_HOME();
 

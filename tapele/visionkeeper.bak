@@ -1,0 +1,76 @@
+# /vendor/etc/init/visionkeeper.rc
+# VisionKeeper - 持续监控服务
+
+# 主服务：以守护进程模式运行
+service visionkeeper /vendor/bin/visionkeeper
+    class main
+    user root
+    group root system
+    seclabel u:r:visionkeeper:s0
+    capabilities SYS_PTRACE NET_ADMIN  # 需要的Linux能力
+    critical                          # 关键服务
+    disabled                          # 默认禁用，由trigger启动
+    
+    # 重要：设置环境变量
+    env ANDROID_DATA /data
+    env ANDROID_ROOT /system
+    env PATH /system/bin:/vendor/bin:/system/xbin
+    
+    # 重启策略
+    restart_period 30                 # 每30秒检查一次
+    restart_class main                # 随main类一起重启
+
+# 调试服务：前台运行模式（用于调试）
+service visionkeeper_debug /vendor/bin/visionkeeper --foreground
+    class debug
+    user root
+    group root
+    seclabel u:r:shell:s0
+    console                          # 需要控制台
+    disabled
+
+# =============== 触发条件 ===============
+
+# 方案A：在boot阶段启动
+on boot
+    # 等待系统基本稳定
+    exec -- /system/bin/sleep 10
+    start visionkeeper
+
+# 方案B：在特定属性设置时启动
+on property:sys.boot_completed=1 && property:ro.vendor.visionkeeper.enable=1
+    log "Starting VisionKeeper service"
+    start visionkeeper
+
+# 方案C：通过手动命令触发
+on property:ctl.start=visionkeeper
+    start visionkeeper
+
+on property:ctl.stop=visionkeeper
+    stop visionkeeper
+
+# =============== 其他触发器 ===============
+
+# 当网络就绪时
+on property:sys.boot_completed=1 && property:net.dns1=*
+    start visionkeeper
+
+# =============== 调试接口 ===============
+
+# 通过属性控制
+on property:persist.vendor.visionkeeper.debug=1
+    stop visionkeeper
+    start visionkeeper_debug
+
+on property:persist.vendor.visionkeeper.debug=0
+    stop visionkeeper_debug
+    start visionkeeper
+
+# 接收自定义信号
+on property:vendor.visionkeeper.restart=1
+    restart visionkeeper
+
+on property:vendor.visionkeeper.update=1
+    # 可以在这里执行更新脚本
+    exec -- /vendor/bin/visionkeeper_update.sh
+    setprop vendor.visionkeeper.update 0
