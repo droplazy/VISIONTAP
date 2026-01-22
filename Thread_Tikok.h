@@ -82,6 +82,7 @@ private:
 
     bool ProhibitFollow_b =false;//账号已经被禁止关注
     bool isBusy =false;
+    bool isLiving =false;
 
     //备注内容
     std::string commandid;

@@ -1142,7 +1142,7 @@ void Thread_Tikok::executeTask()
             {
                 TASK_EXEC =TASK_COMPELTED;
             }
-
+            isLiving =true;
             if(CopyTextFormSys(remark_msg) <0 )
             {
                 cout << "error : 无法复制文本!\n";
@@ -1215,7 +1215,23 @@ void Thread_Tikok::executeTask()
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE || TASK_EXEC == TASK_LVIVINGROOM_BULLET_SENT)
     {
         checklvingroomwid();
+        if(!isLiving)
+        {
 
+            // if(SpecifyLivingRoomOnSite(remark_link) ==-1)
+            // {
+            //     TASK_EXEC =TASK_COMPELTED;
+            // }
+
+            if(EntranceLivingRoom(remark_id) == -1)
+            {
+                TASK_EXEC =TASK_COMPELTED;
+            }
+            else
+            {
+                isLiving =true;
+            }
+        }
         int ret = isLivingRoom();
         if( ret>=3)
         {
@@ -1240,17 +1256,7 @@ void Thread_Tikok::executeTask()
             {
                 TASK_EXEC =TASK_EXEC_FAILD;
             }
-
-            // if(SpecifyLivingRoomOnSite(remark_link) ==-1)
-            // {
-            //     TASK_EXEC =TASK_COMPELTED;
-            // }
-
-            if(EntranceLivingRoom("xppp金铲铲之战") == -1)
-            {
-                TASK_EXEC =TASK_COMPELTED;
-            }
-
+            isLiving=false;
         }
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_BULLET)
@@ -1269,7 +1275,9 @@ void Thread_Tikok::executeTask()
         }
         else
         {
-            SpecifyLivingRoomOnSite(remark_link);
+           // SpecifyLivingRoomOnSite(remark_link);
+            isLiving=false;
+           TASK_EXEC =TASK_LVIVINGROOM_ONSITE;
         }
 
 
@@ -1935,7 +1943,7 @@ int Thread_Tikok::EntranceLivingRoom(string name)
     for ( var = 0; var < 5; ++var)
     {
         // INPUT_TAP(clickP);
-        match = FindTargetForDelay(TIKTOK_SEARCH_LIVING_CV,score,15);
+        match = FindTargetForDelay(TIKTOK_SEARCH_USER_CV,score,15);
         if(match.x == -1 || match.y == -1)
         {
             cout << "没有找到直播按钮...\n" <<endl;
@@ -1945,6 +1953,8 @@ int Thread_Tikok::EntranceLivingRoom(string name)
         {
             cout << "点击直播按钮.."  <<match.x<<"," <<match.y<<".\n" <<endl;
             INPUT_TAP(match);
+            LONG_DELAY;
+
             break;
         }
     }
@@ -1953,29 +1963,31 @@ int Thread_Tikok::EntranceLivingRoom(string name)
         cout << "搜索页面打开失败...\n" <<endl;
         return -1;
     }
+    clickP = {258, 165} ;
+    INPUT_TAP(clickP);
+    LONG_DELAY;
+    // for ( var = 0; var < 5; ++var)
+    // {
+    //     //  INPUT_TAP(clickP);
+    //     match = FindTargetForDelay(TIKTOK_LIVING_UI_CV,score,3);
+    //     if(match.x == -1 || match.y == -1)
+    //     {
+    //         cout << "没有找到直播间...\n" <<endl;
+    //         match = FindTargetForDelay(TIKTOK_LIVING_UI_2_CV,score,3);
+    //         if(match.x == -1 || match.y == -1)
+    //         {
+    //             INPUT_TAP(clickP);
+    //             cout << "点击搜索后重试一次..\n" <<endl;
 
-    for ( var = 0; var < 5; ++var)
-    {
-        //  INPUT_TAP(clickP);
-        match = FindTargetForDelay(TIKTOK_LIVING_UI_CV,score,3);
-        if(match.x == -1 || match.y == -1)
-        {
-            cout << "没有找到直播间...\n" <<endl;
-            match = FindTargetForDelay(TIKTOK_LIVING_UI_2_CV,score,3);
-            if(match.x == -1 || match.y == -1)
-            {
-                INPUT_TAP(clickP);
-                cout << "点击搜索后重试一次..\n" <<endl;
+    //             continue;
+    //         }
 
-                continue;
-            }
-
-        }
-        cout << "进入直播间.."  <<match.x<<"," <<match.y<<".\n" <<endl;
-        INPUT_TAP(match);
-        // SHORT_DELAY;
-        break;
-    }
+    //     }
+    //     cout << "进入直播间.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+    //     INPUT_TAP(match);
+    //     // SHORT_DELAY;
+    //     break;
+    // }
 
 
     cout << "检查直播间三要素 >>>......\n" << endl;

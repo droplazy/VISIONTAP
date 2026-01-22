@@ -24,8 +24,8 @@
 // 进程相关信息
 #define PROCESS_NAME "cv_exe"
 #define LAUNCH_SCRIPT "/data/machine_vision/launch.sh"
-#define LOG_FILE "/data/machine_vision/visionkeeper.log"
-#define PID_FILE "/data/machine_vision/visionkeeper.pid"
+#define LOG_FILE "/vendor/bin/visionkeeper/visionkeeper.log"
+#define PID_FILE "/vendor/bin/visionkeeper/visionkeeper.pid"
 #define CHECK_INTERVAL 3
 #define MAX_RETRIES 3
 

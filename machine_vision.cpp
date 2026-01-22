@@ -838,7 +838,7 @@ ad_point FindTargetWithCutRect(string targetPng, cv::Rect cutRect)
     double score;
     // 找到目标图片（使用截取的区域进行比对）
     match = FindPicTarget(targetImage, imageC, score);
-    cout << "score: " << score << "\n";
+    cout << "score: " << score << "\n" <<endl;
 
     // 如果匹配的分数小于0.8，返回-1
     if (score < 0.8) {

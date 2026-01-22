@@ -113,21 +113,7 @@ int main()
                     {
                         msg=createApplicationStatusJson(*currentAct,"finish");
                     }
-                    // if (currentAct->action == "抖音")
-                    // {
-                    //     Thread_Tikok *p_tikok =static_cast<Thread_Tikok *>(p_applation);
-                    //     p_tikok->onAppExit();
-                    //     p_tikok->safeStop();
-                    //     p_tikok = nullptr;
-                    //     p_applation= nullptr;
-                    //     cout << "抖音指针释放" <<endl;
-
-                    // }
-                    // else if (0)
-                    // {
-                    //     cout << "未知的指针" <<endl;
-                    // }
-                    //     p_applation->onAppExit();
+                         p_applation->onAppExit();
                          p_applation->safeStop();
                      p_applation= nullptr;
                     mqttClient.pubMessage(msg);
