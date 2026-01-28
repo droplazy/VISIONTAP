@@ -667,8 +667,8 @@ int CopyTextFormSys(string texture)
         clickP = match;
     }
 
-    clickP.x =512;
-    clickP.y =300;
+    clickP.x =12;
+    clickP.y =99;
 
     INPUT_TAP_DELAY(clickP,750);
 
@@ -677,6 +677,42 @@ int CopyTextFormSys(string texture)
     if(match.x == -1 || match.y == -1)
     {
         cout << "无法复制...\n" <<endl;
+        INPUT_BACK();
+
+        match = FindTargetForDelay(PIPETXT_PATH,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法找到管道文件...\n" <<endl;
+            return -1;
+        }
+        else
+        {
+            cout << "找到管道文件准备删除.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP_DELAY(match,750);
+        }
+
+        match = FindTargetForDelay(DELFILE_PATH,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法找到删除按钮...\n" <<endl;
+            return -1;
+        }
+        else
+        {
+            cout << "找到管删除按钮.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+        }
+        match = FindTargetForDelay(DELFILECERTAIN_PATH,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法找到删除确认按钮...\n" <<endl;
+            return -1;
+        }
+        else
+        {
+            cout << "删除完成.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+        }
         return -1;
     }
     else
@@ -690,6 +726,45 @@ int CopyTextFormSys(string texture)
     if(match.x == -1 || match.y == -1)
     {
         cout << "无法复制...\n" <<endl;
+
+        INPUT_BACK();
+
+        match = FindTargetForDelay(PIPETXT_PATH,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法找到管道文件...\n" <<endl;
+            return -1;
+        }
+        else
+        {
+            cout << "找到管道文件准备删除.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP_DELAY(match,750);
+        }
+
+        match = FindTargetForDelay(DELFILE_PATH,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法找到删除按钮...\n" <<endl;
+            return -1;
+        }
+        else
+        {
+            cout << "找到管删除按钮.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+        }
+        match = FindTargetForDelay(DELFILECERTAIN_PATH,score,15);
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "无法找到删除确认按钮...\n" <<endl;
+            return -1;
+        }
+        else
+        {
+            cout << "删除完成.."  <<match.x<<"," <<match.y<<".\n" <<endl;
+            INPUT_TAP(match);
+        }
+
+
         return -1;
     }
     else

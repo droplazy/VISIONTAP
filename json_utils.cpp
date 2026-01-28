@@ -13,7 +13,10 @@
 #include <iostream>
 #include "http_utils.h"
 #include <string>
-
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <signal.h>
 string processId = "";
 string dev_IP= "";
 std::string getdeviceIp() {
@@ -448,7 +451,66 @@ void parseDataArray(const string& json, vector<Dev_Action>& actions) {
         objStart = objEnd + 1; // 继续查找下一个对象
     }
 }
+static pid_t audioPid = -1;
 
+bool startAudioStream(const std::string &rtspUrl)
+{
+    // 如果已经在运行，先停止
+    if (audioPid > 0) {
+        std::cout << "音频流已经在运行，先停止之前的进程" << std::endl;
+        stopAudioStream();
+        sleep(1); // 等待进程完全停止
+    }
+
+    // 构建命令
+    std::string command = "tinycap /dev/stdout -d 0 -c 2 -r 48000 -b 16 | "
+                          "LD_LIBRARY_PATH=. ./ffmpeg "
+                          "-f s16le -ar 48000 -ac 2 -i pipe:0 "
+                          "-c:a aac -b:a 192k "
+                          "-f rtsp " + rtspUrl;
+
+    std::cout << "启动音频流命令: " << command << std::endl;
+
+    // 创建子进程
+    audioPid = fork();
+
+    if (audioPid == -1) {
+        std::cerr << "创建子进程失败" << std::endl;
+        return false;
+    }
+
+    if (audioPid == 0) {
+        // 子进程 - 执行命令
+        execl("/bin/sh", "sh", "-c", command.c_str(), (char *)NULL);
+
+        // 如果execl失败
+        std::cerr << "执行命令失败" << std::endl;
+        exit(EXIT_FAILURE);
+    } else {
+        // 父进程
+        std::cout << "音频流启动成功，进程PID: " << audioPid
+                  << " RTSP URL: " << rtspUrl << std::endl;
+
+        // 检查子进程是否正常运行（可选）
+        sleep(1);
+        if (kill(audioPid, 0) == 0) {
+            return true;
+        } else {
+            audioPid = -1;
+            return false;
+        }
+    }
+}
+
+void stopAudioStream()
+{
+    std::cout << "停止音频流" << std::endl;
+
+    // 直接杀死所有相关进程
+    system("killall -9 tinycap ffmpeg 2>/dev/null");
+
+    audioPid = -1;
+}
 
 
 // 打印所有动作
@@ -507,6 +569,7 @@ std::string getTimestamp() {
 void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
 {
     string messagetype = check_message_type(paylaod);
+    std::cout << " 指令" << messagetype<<std::endl;
 
     if(messagetype == "command")
     {
@@ -544,6 +607,49 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
 
         parseDataArray(paylaod, actions);
         printActions(actions); //
+    }
+    else if(messagetype == "stream")
+    {
+        std::cout << " 消息类型: " << messagetype << std::endl;
+
+        // 提取url和switch字段
+        // 注意JSON格式可能有空格或没有空格，所以查找多种可能
+        size_t url_start = paylaod.find("\"url\"");
+        if(url_start != std::string::npos) {
+            url_start = paylaod.find('"', url_start + 6); // 找到冒号后的第一个引号
+            if(url_start != std::string::npos) {
+                url_start += 1; // 跳过引号
+                size_t url_end = paylaod.find('"', url_start);
+                std::string url = paylaod.substr(url_start, url_end - url_start);
+
+                std::cout << " 提取到URL: " << url << std::endl;
+
+                // 查找switch字段
+                size_t switch_start = paylaod.find("\"switch\"");
+                if(switch_start != std::string::npos) {
+                    switch_start = paylaod.find('"', switch_start + 9); // 找到冒号后的第一个引号
+                    if(switch_start != std::string::npos) {
+                        switch_start += 1; // 跳过引号
+                        size_t switch_end = paylaod.find('"', switch_start);
+                        std::string switch_value = paylaod.substr(switch_start, switch_end - switch_start);
+
+                        std::cout << " 提取到switch: " << switch_value << std::endl;
+
+                        if(switch_value == "on") {
+                            std::cout << " 打开推流" << std::endl;
+                            startAudioStream(url);
+                        } else if(switch_value == "off") {
+                            std::cout << " 关闭推流" << std::endl;
+                            stopAudioStream();
+                        } else {
+                            std::cout << " 未知的switch值: " << switch_value << std::endl;
+                        }
+                    }
+                }
+            }
+        } else {
+            std::cout << " 未找到url字段" << std::endl;
+        }
     }
     else if(messagetype == "upgrade")
     {

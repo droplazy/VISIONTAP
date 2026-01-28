@@ -1215,14 +1215,11 @@ void Thread_Tikok::executeTask()
     else if(TASK_EXEC == TASK_LVIVINGROOM_ONSITE || TASK_EXEC == TASK_LVIVINGROOM_BULLET_SENT)
     {
         checklvingroomwid();
+        cout << "正在直播间："<<remark_id << endl;
+        cout << "正在直播间："<<remark_id << endl;
+
         if(!isLiving)
         {
-
-            // if(SpecifyLivingRoomOnSite(remark_link) ==-1)
-            // {
-            //     TASK_EXEC =TASK_COMPELTED;
-            // }
-
             if(EntranceLivingRoom(remark_id) == -1)
             {
                 TASK_EXEC =TASK_COMPELTED;
@@ -1235,28 +1232,36 @@ void Thread_Tikok::executeTask()
         int ret = isLivingRoom();
         if( ret>=3)
         {
-            cout << "正在直播间："<<remark_link << endl;
+            cout << "正在直播间："<<remark_id << endl;
             randomCickScreen();
         }
         else if(ret <0)
         {
-            TASK_EXEC =TASK_EXEC_FAILD;
+            ret = isLivingRoom();
+            if( ret<0)
+            {
+                TASK_EXEC =TASK_EXEC_FAILD;
+            }
         }
         else
         {
             ret = isLivingRoom();
             if( ret>=3)
             {
-                cout << "正在直播间："<<remark_link << endl;
+                cout << "正在直播间："<<remark_id << endl;
+
                 randomCickScreen();
 
 
             }
             else if(ret <0)
             {
+                cout << "退出原因"<<ret << endl;
+
                 TASK_EXEC =TASK_EXEC_FAILD;
             }
-            isLiving=false;
+            else
+                isLiving=false;
         }
     }
     else if(TASK_EXEC == TASK_LVIVINGROOM_BULLET)
