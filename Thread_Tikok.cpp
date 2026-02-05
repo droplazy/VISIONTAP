@@ -456,67 +456,65 @@ void Thread_Tikok::ScrollingShortVideos(int clycles)
     ad_point forward ={0,0};
     double score =0.0f;
     int lowScoreCnt=0;
-    auto start = std::chrono::high_resolution_clock::now();
+    static auto start = std::chrono::high_resolution_clock::now();
+
+    // 设置随机种子
+    srand(time(0));
+
     for(int i =0;i<clycles;i++)
     {
-
-
-
         // 获取当前时间点
         auto end = std::chrono::high_resolution_clock::now();
 
         // 计算时间差，单位为毫秒
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        //   std::cout << "五秒钟后上滑视频" << duration.count() << " milliseconds" << std::endl;
+
         if(duration.count() >6000 && 0)
         {
-            // 输出时间差
             std::cout << "6秒钟后上滑视频" << duration.count() << " milliseconds" << std::endl;
-
             auto start = std::chrono::high_resolution_clock::now();
             scrollingUP();
         }
+
         if(SearchShortVelement(like,comment,farvour,forward,score))
         {
             cout <<"图像对比 通过\n" << endl;
-            // 生成1到16之间的随机数
-            srand(time(0));
-            int randomNum = rand() % 16 + 1;
-            cout <<"操作种子:"<< randomNum <<"\n" << endl;
 
-            if(randomNum & 0x01)
+            // 生成1-100之间的随机数
+            int randomPercent = rand() % 100 + 1;
+            cout <<"操作概率:"<< randomPercent <<"%\n" << endl;
+
+            // 转发 5%
+            if(randomPercent <= 5)
+            {
+                cout <<"给予转发\n" << endl;
+                RandomShortVideoOperation(forward,FORWARD_OPT,"");
+            }
+            // 收藏 5% (6-10)
+            else if(randomPercent <= 10)
+            {
+                cout <<"给予收藏\n" << endl;
+                RandomShortVideoOperation(farvour,FAVOURITE_OPT,"");
+            }
+            // 评论 25% (11-35)
+            else if(randomPercent <= 35)
+            {
+                cout <<"给予评论\n" << endl;
+                RandomShortVideoOperation(comment,COMMENT_OPT,"🌹🌹🌹");
+                beatBack(1);
+            }
+            // 点赞 30% (36-65)
+            else if(randomPercent <= 65)
             {
                 cout <<"给予点赞\n" << endl;
                 RandomShortVideoOperation(like,GIVELIKE_OPT,"");
             }
+            // 其余 35% 无动作
 
             usleep(500*1000);
-
-            if(randomNum>>2 & 0x01)
-            {
-                cout <<"给予收藏\n" << endl;
-
-                RandomShortVideoOperation(farvour,FAVOURITE_OPT,"");
-            }
-            usleep(500*1000);
-            usleep(500*1000);
-            if(randomNum>>1 & 0x01)
-            {
-                cout <<"给予评论\n" << endl;
-
-                RandomShortVideoOperation(comment,COMMENT_OPT,"🌹🌹🌹");
-                beatBack(1);
-            }
-            if(randomNum>>3 & 0x01)
-            {
-                cout <<"给予转发\n" << endl;
-
-                RandomShortVideoOperation(forward,FORWARD_OPT,"");
-                //   beatBack(5);
-            }
-            usleep(500*1000);
+            beatBack(1);
+            cout <<"下一轮视频" <<endl;
             scrollingUP();
-
         }
         else
         {
@@ -530,7 +528,6 @@ void Thread_Tikok::ScrollingShortVideos(int clycles)
             {
                 cout <<"刷到了直播内容\n" << endl;
                 auto start = std::chrono::high_resolution_clock::now();
-
                 scrollingUP();
             }
             else
@@ -541,20 +538,16 @@ void Thread_Tikok::ScrollingShortVideos(int clycles)
                 {
                     cout <<"刷到了直播内容\n" << endl;
                     auto start = std::chrono::high_resolution_clock::now();
-
                     scrollingUP();
                 }else
                 {
                     cout <<"未知内容..点击1下back.\n" << endl;
-                    //lowScoreCnt++;
                     INPUT_BACK();
                 }
             }
         }
-
     }
     cout << "endend \n" <<endl;
-
 }
 
 int Thread_Tikok::SpecifyContentOperation(string link,CONTENT_OPT opt,string comment)
@@ -1645,8 +1638,75 @@ void Thread_Tikok::RandomShortVideoOperation(ad_point click,CONTENT_OPT opt,stri
     else if(opt == COMMENT_OPT)
     {
         INPUT_TAP(click);
+        SHORT_DELAY;
 
-        ContentComment(content);
+        ad_point match ={942,195};
+        INPUT_TAP(match);
+
+       /* double score;
+        ad_point match = FindTargetForDelay("/data/machine_vision/apppic/commentmagnify.png",score,5);
+
+        if(match.x == -1 || match.y == -1)
+        {
+            cout << "找不到放大评论区按钮...\n" <<endl;
+        }
+        else
+        {
+        cout << "点击放大评论区\n"<< endl;
+        INPUT_TAP(match);
+
+         snap_screen();
+        }*/
+        string t_ip =IP_HOST;
+        string url ="http://"+t_ip+":8080/ocr_xunfei/AI_comments";
+        string picPath =captureScreenshot();
+       string  result = recognizeTextFromImage(url,picPath);
+
+        // 查找 "text": 后面跟着空格和引号的模式
+        size_t start = result.find("\"text\":");
+        if (start == std::string::npos) {
+            std::cout << "错误: 未找到text字段" << std::endl;
+            beatBack(1);
+            return;
+        }
+
+        // 跳过 "text":
+        start += 7;
+        // 跳过可能的空格
+        while (start < result.size() && (result[start] == ' ' || result[start] == '\t' || result[start] == '\n')) {
+            start++;
+        }
+        // 检查是否是引号开头
+        if (start >= result.size() || result[start] != '"') {
+            std::cout << "错误: text字段值不是字符串" << std::endl;
+            beatBack(1);
+            return;
+        }
+
+        // 跳过开头的引号
+        start++;
+        // 查找结束引号
+        size_t end = result.find("\"", start);
+        if (end == std::string::npos) {
+            std::cout << "错误: 未找到结束引号" << std::endl;
+            beatBack(1);
+            return;
+        }
+
+        std::string text = result.substr(start, end - start);
+        result = text;
+        std::cout << "提取成功: " << result << std::endl;
+
+        // 检查是否是没有识别到有效评论
+        if (result == "没有识别到有效评论") {
+            std::cout << "没有有效评论，直接返回" << std::endl;
+            beatBack(1);
+            return;
+        }
+
+
+        ContentComment(result);
+
         beatBack(1);
     }
     else if(opt == FAVOURITE_OPT)
@@ -2440,10 +2500,6 @@ void Thread_Tikok::selectTaskPreExec()
     else if (action.sub_action == "互粉")
     {
         TASK_EXEC = TASK_FOLLOW_MODE;
-    }
-    else if (action.sub_action == "刷视频")
-    {
-        TASK_EXEC = TASK_SCROLLING_MODE;
     }
     else if (action.sub_action == "刷视频")
     {

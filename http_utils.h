@@ -110,6 +110,9 @@ public:
     void set_read_callback(ReadCallback callback);
     void set_progress_callback(ProgressCallback callback);
     void set_header_callback(HeaderCallback callback);
+    // 辅助函数
+    static std::string build_query_string(const std::map<std::string, std::string>& params);
+    static std::string method_to_string(Method method);
 
     // 工具函数
     static std::string url_encode(const std::string& str);
@@ -128,9 +131,6 @@ private:
     HttpClient(const HttpClient&);
     HttpClient& operator=(const HttpClient&);
 
-    // 辅助函数
-    static std::string build_query_string(const std::map<std::string, std::string>& params);
-    static std::string method_to_string(Method method);
 };
 
 #endif // HTTP_UTILS_H

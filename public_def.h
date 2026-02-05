@@ -20,6 +20,9 @@ using namespace std;
 #define ENABLE_DEBUG_IMAGE 0
 
 
+
+std::string captureScreenshot();
+
 // 定义一个结构体来存储网卡信息
 struct NetworkInfo {
     string ip;
@@ -57,6 +60,8 @@ struct NetworkInfo {
 // 定义结构体
 struct Action {
     string name;         // 动作名称
+    string subname;         // 动作名称
+
     string start_time;   // 开始时间
     string end_time;     // 结束时间
 };

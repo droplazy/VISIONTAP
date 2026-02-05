@@ -104,6 +104,8 @@ std::string generateHeartbeatJson(const HeartbeatMessage& heartbeat) {
          << "  \"data\": {\n"
          << "    \"current_action\": {\n"
          << "      \"name\": \"" << heartbeat.data.current_action.name << "\",\n"
+         << "      \"subname\": \"" << heartbeat.data.current_action.subname << "\",\n"
+
          << "      \"start_time\": \"" << heartbeat.data.current_action.start_time << "\",\n"
          << "      \"end_time\": \"" << heartbeat.data.current_action.end_time << "\"\n"
          << "    },\n"
@@ -122,9 +124,9 @@ std::string generateHeartbeatJson(const HeartbeatMessage& heartbeat) {
          << "    \"firmware_version\": \"" << VERSION << "\",\n"
 
          << "    \"mac\": \"" << heartbeat.data.mac << "\",\n"
-       //  << "    \"runtime\": \"" << heartbeat.data.runtime << "\"\n"    devicedata.ProcessID = "P001";
+         //  << "    \"runtime\": \"" << heartbeat.data.runtime << "\"\n"    devicedata.ProcessID = "P001";
          << "    \"traffic_statistics\": \"" << heartbeat.data.totalTraffic << "\",\n"
-     //./    << "    \"usedProcess\": \"" << heartbeat.data.usedProcess << "\",\n"
+         //./    << "    \"usedProcess\": \"" << heartbeat.data.usedProcess << "\",\n"
          << "    \"ProcessID\": \"" << heartbeat.data.ProcessID << "\"\n"
 
          << "  }\n"
@@ -166,7 +168,7 @@ std::string getUptime() {
     iss >> uptime_seconds; // 读取第一个值（秒）
 
     // 打印解析结果，检查是否成功提取 uptime_seconds
- //   std::cout << "Parsed uptime seconds: " << uptime_seconds << std::endl;
+    //   std::cout << "Parsed uptime seconds: " << uptime_seconds << std::endl;
 
     // 如果没有获取到uptime_seconds，说明输出有问题
     if (uptime_seconds.empty()) {
@@ -221,7 +223,7 @@ std::string getUtcTimestamp()
     auto now = system_clock::now();
     std::time_t t = system_clock::to_time_t(now);
 
-        t += 8 * 3600;
+    t += 8 * 3600;
     // 转成 UTC tm
     std::tm tm_utc{};
 #if defined(_WIN32)
@@ -241,7 +243,7 @@ NetworkInfo getNetworkInfo(const std::string& interface) {
     // 执行 ifconfig 命令
     std::string cmd = "ifconfig " + interface;
     std::string output = execCommand(cmd);
-   // std::cout << "output : " << output << std::endl;
+    // std::cout << "output : " << output << std::endl;
 
     // 使用正则表达式解析输出，提取 IP 和 MAC 地址
     std::regex ipRegex(R"(inet addr:(\d+\.\d+\.\d+\.\d+))");
@@ -289,26 +291,26 @@ string check_message_type(const string& json_data) {
 
     // 如果没有找到字段，则返回空
     if (pos == string::npos) {
-   //     cout << "messageType not found!" << endl;
+        //     cout << "messageType not found!" << endl;
         return "";
     }
-  //  cout << "Found \"messageType\": at position " << pos << endl;
+    //  cout << "Found \"messageType\": at position " << pos << endl;
 
     // 从字段位置开始，提取 "messageType" 的值
     pos = json_data.find(":", pos);
     if (pos == string::npos) {
-   //     cout << "Colon (:) not found after \"messageType\"" << endl;
+        //     cout << "Colon (:) not found after \"messageType\"" << endl;
         return "";
     }
-  //  cout << "Found colon (:) at position " << pos << endl;
+    //  cout << "Found colon (:) at position " << pos << endl;
 
     // 跳过冒号，找到第一个非空字符（去掉空格和引号）
     pos = json_data.find_first_not_of(" \t\n\r", pos + 1);
     if (pos == string::npos) {
-   //     cout << "No non-whitespace character found after colon" << endl;
+        //     cout << "No non-whitespace character found after colon" << endl;
         return "";
     }
-  //  cout << "Found non-whitespace character at position " << pos << endl;
+    //  cout << "Found non-whitespace character at position " << pos << endl;
 
     // 查找字段的结束位置，假设是双引号或其他标记
     size_t end_pos = json_data.find_first_of("\"", pos + 1);
@@ -316,11 +318,11 @@ string check_message_type(const string& json_data) {
         cout << "End quote for \"messageType\" not found!" << endl;
         return "";
     }
- //   cout << "Found end quote at position " << end_pos << endl;
+    //   cout << "Found end quote at position " << end_pos << endl;
 
     // 提取字符串，返回 messageType 的值
     string message_type = json_data.substr(pos + 1, end_pos - pos - 1);
-  //  cout << "Extracted messageType: " << message_type << endl;
+    //  cout << "Extracted messageType: " << message_type << endl;
 
     // 返回提取到的 messageType 字段值
     return message_type;
@@ -354,20 +356,24 @@ std::string GetdeviceInfoAndresJson(Dev_Action *cur)//TODO
     devicedata.serial_number = parseSerialNumber();
     devicedata.verification_code = VERIFY_CODE;
     devicedata.boot_time = getUptime();
-  //  devicedata.usedProcess = "xxxxx";
+    //  devicedata.usedProcess = "xxxxx";
     devicedata.ProcessID = processId;
     HeartbeatMessage heartbeat;
     heartbeat.timestamp =getUtcTimestamp();
     heartbeat.messageType="heart";
     if(cur != nullptr)
     {
-    devicedata.current_action.name = cur->action;
-    devicedata.current_action.start_time = cur->start_time;
-    devicedata.current_action.end_time = cur->end_time;
+        devicedata.current_action.name = cur->action;
+        devicedata.current_action.subname = cur->sub_action;
+
+        devicedata.current_action.start_time = cur->start_time;
+        devicedata.current_action.end_time = cur->end_time;
     }
     else
     {
         devicedata.current_action.name = "空闲";
+        devicedata.current_action.subname = "空闲";
+
         devicedata.current_action.start_time = "00:00:00";
         devicedata.current_action.end_time = "00:00:00";
 
@@ -464,7 +470,7 @@ bool startAudioStream(const std::string &rtspUrl)
 
     // 构建命令
     std::string command = "tinycap /dev/stdout -d 0 -c 2 -r 48000 -b 16 | "
-                          "LD_LIBRARY_PATH=. ./ffmpeg "
+                          "LD_LIBRARY_PATH=/data/machine_vision/ /data/machine_vision/ffmpeg "
                           "-f s16le -ar 48000 -ac 2 -i pipe:0 "
                           "-c:a aac -b:a 192k "
                           "-f rtsp " + rtspUrl;
@@ -592,7 +598,7 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
             std::cout << "活动待运行:"<<action.action << action.sub_action<< std::endl;
             std::cout << "开始时间:"<<action.start_time << "停止时间:"<<action.end_time << std::endl;
             std::cout << "指令码:"<< action.command_id<< std::endl;
-        actions.push_back(action);
+            actions.push_back(action);
         }
         else
         {
@@ -822,7 +828,7 @@ void ParseMqttMassage(string paylaod, vector<Dev_Action> &actions)
         std::cerr.flush();
 
         // 等待3秒，让日志完全写入
-       // std::this_thread::sleep_for(std::chrono::seconds(3));
+        // std::this_thread::sleep_for(std::chrono::seconds(3));
         sleep(3);
         // 重启系统
         std::cout << "正在重启系统..." << std::endl;
@@ -851,7 +857,7 @@ Dev_Action* TraverActionsVector(vector<Dev_Action>& actions , Dev_Action *&curre
     for (auto it = actions.begin(); it != actions.end();)
     {
         auto& action = *it;
-    // 注意 current会遍历到他自己！！！
+        // 注意 current会遍历到他自己！！！
         try {
             // 如果活动已结束且未运行，删除活动
             if (compareTime(action.end_time) >= 0 && !action.isRunning)
@@ -910,12 +916,12 @@ Dev_Action* TraverActionsVector(vector<Dev_Action>& actions , Dev_Action *&curre
 
 void pollAndRemoveCompletedActions(vector<Dev_Action>& actions)
 {
-       //  std::cout << "开始时间" << std::endl;
+    //  std::cout << "开始时间" << std::endl;
 
     // 使用迭代器来删除元素
     for (auto it = actions.begin(); it != actions.end();) {
         auto& action = *it;
-       //     action.print();
+        //     action.print();
         if (it->compeleted) {
             // 删除compeleted为true的元素
             it = actions.erase(it);
@@ -1095,7 +1101,7 @@ int Downloadfile(std::string download_url, std::string save_path) {
     // 获取serial_number
     std::string serial_number = parseSerialNumber(); // 替换为实际接口调用
 
-    std::string modified_url = download_url + "&serial_number=" + serial_number +"&token="+VERIFY_CODE;
+    std::string modified_url = download_url + "?serial_number=" + serial_number +"&token="+VERIFY_CODE;
 
     // 使用download方法
     if (client.download(modified_url, save_path, config)) {
@@ -1163,7 +1169,7 @@ int Uploadfile(const std::string& upload_url, const std::string& file_path)
 
     // 修改：将serial_number作为额外参数上传
     // 方式1：如果是URL参数（推荐）
-    std::string modified_url = upload_url + "&serial_number=" + serial_number +"&token="+VERIFY_CODE;
+    std::string modified_url = upload_url + "?serial_number=" + serial_number +"&token="+VERIFY_CODE;
     auto response = client.upload(modified_url, file_path, "file", config);
 
     // 方式2：如果是表单字段（根据你的HttpClient接口选择）
@@ -1188,5 +1194,124 @@ int Uploadfile(const std::string& upload_url, const std::string& file_path)
     HttpClient::cleanup();
 
     std::cout << "\n=== Upload Completed ===" << std::endl;
+    return 0;
+}
+// Base64编码函数
+std::string base64_encode(const std::string &input) {
+    const std::string base64_chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789+/";
+
+    std::string ret;
+    int i = 0, j = 0;
+    unsigned char char_array_3[3], char_array_4[4];
+    size_t in_len = input.size();
+    const char* bytes_to_encode = input.c_str();
+
+    while (in_len--) {
+        char_array_3[i++] = *(bytes_to_encode++);
+        if (i == 3) {
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+            char_array_4[3] = char_array_3[2] & 0x3f;
+
+            for (i = 0; i < 4; i++)
+                ret += base64_chars[char_array_4[i]];
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for (j = i; j < 3; j++)
+            char_array_3[j] = '\0';
+
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+        char_array_4[3] = char_array_3[2] & 0x3f;
+
+        for (j = 0; j < i + 1; j++)
+            ret += base64_chars[char_array_4[j]];
+
+        while (i++ < 3)
+            ret += '=';
+    }
+
+    return ret;
+}
+
+std::string recognizeTextFromImage(const std::string& upload_url, const std::string& file_path)
+{
+    std::cout << "=== Uploading File ===" << std::endl;
+    std::cout << "URL: " << upload_url << std::endl;
+    std::cout << "File: " << file_path << std::endl;
+
+    // 获取serial_number
+    std::string serial_number = parseSerialNumber(); // 替换为实际接口调用
+
+    // 检查文件是否存在
+    std::ifstream test_file(file_path.c_str(), std::ios::binary);
+    if (!test_file.is_open()) {
+        std::cout << "✗ Error: File does not exist or cannot be opened: " << file_path << std::endl;
+        return "Error: File does not exist or cannot be opened";
+    }
+    test_file.close();
+
+    // 初始化HTTP客户端
+    if (!HttpClient::init()) {
+        std::cout << "✗ Error: Failed to initialize cURL!" << std::endl;
+        return "Error: Failed to initialize cURL!";
+    }
+
+    HttpClient client;
+
+    // 配置
+    HttpClient::Config config;
+    config.timeout = 60;  // 上传可能需要更长时间
+    config.verbose = true;  // 显示详细日志，便于调试
+    config.user_agent = "HttpUploader/1.0";
+    config.verify_ssl = false;  // 如果是HTTP而非HTTPS，可以禁用SSL验证
+
+    // 从文件路径中提取文件名
+    std::string filename;
+    size_t last_slash = file_path.find_last_of("/\\");
+    if (last_slash != std::string::npos) {
+        filename = file_path.substr(last_slash + 1);
+    } else {
+        filename = file_path;
+    }
+
+    std::cout << "Filename: " << filename << std::endl;
+    std::cout << "Serial Number: " << serial_number << std::endl;
+
+    // 修改：将serial_number作为额外参数上传
+    // 方式1：如果是URL参数（推荐）
+    std::string modified_url = upload_url + "?serial_number=" + serial_number +"&token="+VERIFY_CODE;
+    auto response = client.upload(modified_url, file_path, "file", config);
+
+    // 方式2：如果是表单字段（根据你的HttpClient接口选择）
+    // auto response = client.upload(upload_url, file_path, "file", {{"serial_number", serial_number}}, config);
+
+    if (response.ok()) {
+        std::cout << "✓ File uploaded successfully!" << std::endl;
+        std::cout << "  Status: " << response.status_code << std::endl;
+        std::cout << "  Response: " << response.body << std::endl;
+        return response.body;
+        // 你可以在这里处理返回的数据
+    } else {
+        std::cout << "✗ Upload failed!" << std::endl;
+        std::cout << "  Error: " << response.error << std::endl;
+        std::cout << "  Status: " << response.status_code << std::endl;
+        std::cout << "  Response: " << response.body << std::endl;
+
+        return "Error: Upload failed!";
+    }
+
+    // 清理
+    HttpClient::cleanup();
+
+    std::cout << "\n=== post Completed ===" << std::endl;
     return 0;
 }

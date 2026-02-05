@@ -20,7 +20,7 @@
 
 void printSubActions(const vector<Dev_Action>& actions_vector);
 void SchedulingProcess(struct Dev_Action *currentAct ,ThreadBase *&p_thread);
-int test_download_from_server();
+
 bool initGPIO142();
 bool toggleGPIO142();
 std::string captureScreenshot();
@@ -31,13 +31,19 @@ bool installFactoryApps();
 bool checkInternetConnection();
 bool checkSpecificAppsInstalled(std::vector<std::string>& missingApps);
 std::string getApkFilenameForPackage(const std::string& packageName);
-
+void enableAudioLoopback();
+/*    string t_ip =IP_HOST;
+    string url ="http://"+t_ip+":8080/ocr_xunfei/AI_comments";
+    string picPath =captureScreenshot();
+     string  result = recognizeTextFromImage(url,"/data/machine_vision/background.png");
+    cout <<    "get L :"  << result << endl;
+     return 0;*/
 int main()
 {
     system("echo "" > cv_exe.log");
     initGPIO142();
     setGPIO142(0);
-
+    enableAudioLoopback();
     if(checkInternetConnection())
     {
         setGPIO142(1);
@@ -83,6 +89,9 @@ int main()
         TraverActionsVector(actions_vector, currentAct);
 
         if (currentAct != nullptr) {
+
+            cout <<"debug:" <<currentAct->command_id << endl;
+
             toggleGPIO142();
             SchedulingProcess(currentAct, p_applation);
             // 安全退出线程 方法  先等app状态标志为退出成功后在这里 调用safestop 重要
@@ -93,6 +102,7 @@ int main()
                     p_applation->applacationstate == ThreadBase::AppState::ERROR   ||
                     p_applation->applacationstate == ThreadBase::AppState::NEEDLOGIN   ) {
                     cout << "线程已经退出... "  << endl;
+                    stopAudioStream();
                     string t_ip =IP_HOST;
                     string url ="http://"+t_ip+":8080/dev/upload?commandid="+currentAct->command_id;
                     string picPath =captureScreenshot();
@@ -113,16 +123,17 @@ int main()
                     {
                         msg=createApplicationStatusJson(*currentAct,"finish");
                     }
-                         p_applation->onAppExit();
-                         p_applation->safeStop();
-                     p_applation= nullptr;
+                    p_applation->onAppExit();
+                    p_applation->safeStop();
+                    p_applation= nullptr;
                     mqttClient.pubMessage(msg);
                     currentAct->compeleted = true; // 交给回收接口去处理
                     currentAct = nullptr;
                     // continue;
-                } else if (currentAct->sub_action == "弹幕" &&
-                           currentAct->action == "抖音") {
-                    Thread_Tikok *p_tikok =static_cast<Thread_Tikok *>(p_applation); // TODO 感觉强转失败了
+                }
+                else if (currentAct->sub_action == "弹幕" &&currentAct->action == "抖音")
+                {
+                    Thread_Tikok *p_tikok =static_cast<Thread_Tikok *>(p_applation); //
                     if (p_tikok->TASK_EXEC ==Thread_Tikok::TASK_LVIVINGROOM_BULLET_SENT) {
                         currentAct->sub_action = "直播";
                         p_tikok->TASK_EXEC = Thread_Tikok::TASK_LVIVINGROOM_ONSITE;
@@ -289,6 +300,15 @@ bool installFactoryApps() {
     system("pm list packages -3");
 
     return allInstalled;
+}
+
+void enableAudioLoopback() {
+    system("tinymix \"SDI0 Loopback Switch\" \"Enable\"");
+    system("tinymix \"SDI1 Loopback Switch\" \"Enable\"");
+    system("tinymix \"SDI2 Loopback Switch\" \"Enable\"");
+    system("tinymix \"SDI3 Loopback Switch\" \"Enable\"");
+    system("tinymix \"SDI0 Loopback Src Select\" \"From SDO0\"");
+    system("tinymix \"SDI1 Loopback Src Select\" \"From SDO0\"");
 }
 bool checkInternetConnection();
 // 初始化142号GPIO为输出模式

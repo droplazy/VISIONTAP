@@ -63,7 +63,7 @@ std::string createApplicationStatusJson(Dev_Action &cur, const std::string& stat
  int Downloadfile(std::string download_url,std::string save_path);
  // 启动音频流传输
  bool startAudioStream(const std::string &rtspUrl);
-
+ std::string recognizeTextFromImage(const std::string &rtspUrl,const std::string& image_path);
  // 停止音频流传输
  void stopAudioStream();
 #endif // OPENCV_UTILS_H
